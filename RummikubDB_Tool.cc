@@ -11,6 +11,8 @@
 #include <math.h>
 #include <esat_extra/imgui.h>
 
+#include "./Code/ScreenModules.h"
+
 #include "./Libs/CustomLibs/AudioLib.h"
 #include "./Libs/CustomLibs/Utils.h"
 
@@ -29,15 +31,9 @@ void Update(){
 void Draw(){
     esat::DrawClear(0,0,0);
 
-    ImGui::Begin("Rummikub DB");
-    ImGui::SetWindowSize({Utils::kWindowWidth*0.98f, Utils::kWindowHeight*0.48f});
-    ImGui::SetWindowPos({Utils::kWindowWidth*0.01f,Utils::kWindowHeight*0.01f});
-    ImGui::End();
-
-    ImGui::Begin("Custom Querys");
-    ImGui::SetWindowSize({Utils::kWindowWidth*0.98f, Utils::kWindowHeight*0.48f});
-    ImGui::SetWindowPos({Utils::kWindowWidth*0.01f,Utils::kWindowHeight*0.51f});
-    ImGui::End();
+    ScreenModules::DrawScreenModule(ScreenModules::S_Module::TABLES);
+    ScreenModules::DrawScreenModule(ScreenModules::S_Module::QUERY_CONTENT);
+    ScreenModules::DrawScreenModule(ScreenModules::S_Module::CUSTOM_QUERYS);
 
     esat::DrawEnd();  	
 }
@@ -61,13 +57,12 @@ void CloseFiles(){
 
 }
 
+//Main function
 int esat::main(int argc, char **argv) {
     Utils::GenerateRandomSeed();
 
 	esat::WindowInit(Utils::kWindowWidth, Utils::kWindowHeight);
 	WindowSetMouseVisibility(true);
-
-    esat::DrawSetTextFont("./Assets/Fonts/Hyperspace.ttf");
 
     Init();
 

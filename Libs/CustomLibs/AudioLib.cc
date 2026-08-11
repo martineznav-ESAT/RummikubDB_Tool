@@ -39,7 +39,7 @@ namespace AudioLib{
         sounds[type].stop(); 
     }
     
-    //Plays the given sound tyoe
+    //Plays the given sound type
     void PlaySound(SoundsType type){
         sound_handles[type] = audio_channel.play(sounds[type]); 
     }

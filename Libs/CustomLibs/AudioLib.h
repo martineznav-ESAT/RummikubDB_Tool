@@ -24,14 +24,19 @@ namespace AudioLib{
         TOTAL_SOUNDS
     };
 
+    //Audio channel and sound files inicialization
     void Init();
 
+    //Returns a boolean that determines if de given sound type is currently paused or not
     bool IsSoundPaused(SoundsType type);
 
+    //Stops the given sound type
     void PlaySound(SoundsType type);
 
+    //Plays the given sound type
     void StopSound(SoundsType type);
 
+    //Releases all AudioLib memory variables
     void EmptyMemory();
 }
 
