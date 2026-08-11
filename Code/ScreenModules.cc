@@ -3,31 +3,54 @@
 #include <esat_extra/imgui.h>
 
 #include "./ScreenModules.h"
+#include "./DataBaseManager.h"
 
 #include "../Libs/CustomLibs/Utils.h"
 
 namespace ScreenModules{
-    char* db_tables[] = {"Tabla1", "Tabla2", "Tabla3"};
-    int selectedTable = 0;
+    //TablesModule Globals
+    int selectedTable = -1; //Unselected by default
 
+    //QueryContent Globals
+
+    //CustomQuerys Globals
+
+    
     //Inicialization function
     void Init(){
 
     }
 
-    //Draws on screen the left column that portraits the available tables of the database
-    void DrawTables(){
+    //Shows the available tables as interactive selectables
+    void ShowAvailableTables(){
 
-        ImGui::Begin("Rummikub DB", 0, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse);
-        ImGui::SetWindowSize({Utils::kWindowWidth*0.33f, Utils::kWindowHeight*1.0f});
-        ImGui::SetWindowPos({0.0f, 0.0f});
+        ImGui::PushStyleVar(ImGuiStyleVar_SelectableTextAlign,ImVec2(0.0f, 0.5f));
 
-        for (int i = 0; i < 3; i++){
-            if (ImGui::Selectable(db_tables[i], selectedTable == i))
+        for (int i = 0; i < TList::ListLength(DataBaseManager::db_tables); i++){
+            if (
+                ImGui::Selectable(
+                    TList::GetIndexListNode(DataBaseManager::db_tables, i)->info.str_info, 
+                    selectedTable == i, 
+                    0,
+                    ImVec2(0, 25)
+                )
+            )
             {
                 selectedTable = i;
             }
         }
+
+        ImGui::PopStyleVar();
+    }
+
+    //Draws on screen the left column that portraits the available tables of the database
+    void DrawTables(){
+        //Window Init
+        ImGui::Begin("Rummikub DB", 0, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse);
+        ImGui::SetWindowSize({Utils::kWindowWidth*0.33f, Utils::kWindowHeight*1.0f});
+        ImGui::SetWindowPos({0.0f, 0.0f});
+
+        ShowAvailableTables();
 
         ImGui::End();
     }
@@ -48,6 +71,7 @@ namespace ScreenModules{
         ImGui::End();
     }
 
+    //Draws on screen the module determined as parameter
     void DrawScreenModule(S_Module module){
         switch (module){
             case S_Module::TABLES :
@@ -64,7 +88,7 @@ namespace ScreenModules{
         }
     }
 
-    //Inicialization function
+    //Ensures everything is closed and freed from memory
     void EmptyMemory(){
 
     }

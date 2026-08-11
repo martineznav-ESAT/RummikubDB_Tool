@@ -9,21 +9,16 @@ namespace ScreenModules{
         TABLES,
         CUSTOM_QUERYS,
         QUERY_CONTENT,
-        // BANG_SMALL,
-        // BEAT_1,
-        // BEAT_2,
-        // EXTRA_SHIP,
-        // FIRE,
-        // UFO_BIG,
-        // UFO_SMALL,
-        // THRUST,
         TOTAL_S_MODULES
     };
 
+    //Inicialization function
     void Init();
 
+    //Draws on screen the module determined as parameter
     void DrawScreenModule(S_Module module);
 
+    //Ensures everything is closed and freed from memory
     void EmptyMemory();
 }
 

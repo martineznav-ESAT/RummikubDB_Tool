@@ -12,6 +12,7 @@
 #include <esat_extra/imgui.h>
 
 #include "./Code/ScreenModules.h"
+#include "./Code/DataBaseManager.h"
 
 #include "./Libs/CustomLibs/AudioLib.h"
 #include "./Libs/CustomLibs/Utils.h"
@@ -19,7 +20,7 @@
 // Launches all Initialization functions needed from all the imported resources.
 void Init(){
     AudioLib::Init();
-    // printf("INIT GAME END\n");
+    DataBaseManager::Init();
 }
 
 // Launches the current screen update functions needed 
@@ -49,7 +50,7 @@ bool CloseCondition(){
 // Launches all memory releasing functions needed from all the imported resources.
 void EmptyMemory(){
     AudioLib::EmptyMemory();
-    //printf("AudioLib FINO\n");
+    DataBaseManager::EmptyMemory();
 }
 
 //Ensures all the posibly used files are closed
