@@ -11,7 +11,7 @@
 #include <math.h>
 #include <esat_extra/imgui.h>
 
-#include "./Code/ScreenModules.h"
+#include "./Code/ScreenModules/ModulesManager.h"
 #include "./Code/DataBaseManager.h"
 
 #include "./Libs/CustomLibs/AudioLib.h"
@@ -32,9 +32,9 @@ void Update(){
 void Draw(){
     esat::DrawClear(0,0,0);
 
-    ScreenModules::DrawScreenModule(ScreenModules::S_Module::TABLES);
-    ScreenModules::DrawScreenModule(ScreenModules::S_Module::QUERY_CONTENT);
-    ScreenModules::DrawScreenModule(ScreenModules::S_Module::CUSTOM_QUERYS);
+    ModulesManager::DrawScreenModule(ModulesManager::S_Module::TABLES);
+    ModulesManager::DrawScreenModule(ModulesManager::S_Module::QUERY_CONTENT);
+    ModulesManager::DrawScreenModule(ModulesManager::S_Module::CUSTOM_QUERYS);
 
     esat::DrawEnd();  	
 }

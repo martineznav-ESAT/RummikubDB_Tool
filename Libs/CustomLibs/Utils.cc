@@ -14,11 +14,13 @@
 #include "./Utils.h"
 
 namespace Utils{
+    //Frames updated per second
     const unsigned char kFPS = 60;
-    // const int kWindowWidth = 800, kWindowHeight = 608;
-    const int kWindowWidth = 1280, kWindowHeight = 960;
-    const int kBaseFontSize = 19;
 
+    //Window dimensions
+    const int kWindowWidth = 1280, kWindowHeight = 960;
+
+    //Frame management variables
     double current_time,last_time;
 
     //Generates a new seed for random numbers generation based on the system clock ms

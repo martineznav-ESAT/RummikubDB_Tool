@@ -24,4 +24,15 @@ namespace Callbacks{
         
         return 0;
     }
+
+    //Callback for "Select * from 'tablename' Query
+    int CB_SelectTableName(void *tablename, int num_columns, char **values, char **column_names){
+
+        for (int i = 0; i < num_columns; i++){
+            printf("%s | ",values[i]);
+        }
+        
+        
+        return 0;
+    }
 }

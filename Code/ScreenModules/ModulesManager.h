@@ -1,9 +1,13 @@
 // @author Jonathan Martínez Navarro
 
-#ifndef ScreenModules_H
-#define ScreenModules_H
+#ifndef ModulesManager_H
+#define ModulesManager_H
 
-namespace ScreenModules{
+#include "./ContentModule.h"
+#include "./CustomQueryModule.h"
+#include "./TablesModule.h"
+
+namespace ModulesManager{
 
     enum S_Module{
         TABLES,
