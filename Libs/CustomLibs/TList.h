@@ -56,7 +56,7 @@ namespace TList{
     ListNode* ExtractFromList(ListNode **list_element);
 
     //Deletes a node with the given value
-    void DeleteElement(ListNode **list, ListInfo info);
+    // void DeleteElement(ListNode **list, ListInfo info);
 
     void ClearList(ListNode **list);
 }

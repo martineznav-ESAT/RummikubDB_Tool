@@ -46,23 +46,19 @@ namespace TList{
     //Returns a bool that determines if the value was properly inserted
     bool InsertList(ListNode **list, ListType type, ListInfo info){
         bool is_inserted = true;
-        if(!IsEmptyList(list) && FindInList(*list, info)){
-            is_inserted = false;
-        }else{
-            ListNode *aux;
-            // printf("InsertList\n");
-            aux = (ListNode*) malloc(sizeof(ListNode));
-            aux->info = info;
-            aux->type = type;
-            aux->next = *list;
-            aux->prev = nullptr;
+        ListNode *aux;
+        // printf("InsertList\n");
+        aux = (ListNode*) malloc(sizeof(ListNode));
+        aux->info = info;
+        aux->type = type;
+        aux->next = *list;
+        aux->prev = nullptr;
 
-            if(*list != nullptr){
-                (*list)->prev = aux;
-            }
-
-            *list = aux;
+        if(*list != nullptr){
+            (*list)->prev = aux;
         }
+
+        *list = aux;
 
         return is_inserted;
     }    
@@ -168,7 +164,6 @@ namespace TList{
     //Deletes the given node from the list
     void DeleteElement(ListNode **list, ListNode *delete_node){
         // printf("DeleteFromList\n");
-        // printf(" EmptyAsteroidMemory 2 %p\n", delete_node);
 
         //Check if exists
         if(IsEmptyList(&delete_node)){
@@ -193,12 +188,12 @@ namespace TList{
     }
 
     //Deletes a node with the given value
-    void DeleteElement(ListNode **list, ListInfo info){
-        // printf("DeleteFromList\n");
+    // void DeleteElement(ListNode **list, ListInfo info){
+    //     // printf("DeleteFromList\n");
         
-        ListNode *aux = FindInList(*list, info);
-        DeleteElement(list, aux);
-    }
+    //     ListNode *aux = FindInList(*list, info);
+    //     DeleteElement(list, aux);
+    // }
 
     //Cleans a list completely deleting all the nodes inside it 
     void ClearList(ListNode **list){

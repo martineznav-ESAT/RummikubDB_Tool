@@ -17,23 +17,34 @@ namespace ContentModule{
     }
 
     void DrawContentTable(){
-        if(content_info.is_loaded && TablesModule::selectedTable > -1){
-            printf("DRAWING CONTENT\n");
-            ImGui::BeginTable("content", content_info.num_columns);
 
-            for (int r = 0; r < content_info.num_rows; r++){
-                ImGui::TableNextRow();
-                for (int c = 0; c < content_info.num_columns; c++){
-                    ImGui::TableNextColumn();
-                    if(r == 0){
-                        //Draws Header value
-                        ImGui::Text("%s", TList::GetIndexListNode(content_info.column_names, r)->info.str_info);
-                    }else{
-                        //Draws Register value
-                        ImGui::Text("%s", TList::GetIndexListNode(content_info.values , (r*content_info.num_columns)+c)->info.str_info);
+        if(content_info.is_loaded && TablesModule::selectedTable != -1){
+            ImGui::BeginTable("content", content_info.num_columns, 
+                ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | 
+                ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY
+            );
+
+            for (int r = -1; r < content_info.num_rows; r++){
+                if(r == -1){
+                    //Draws Header value
+                    if(!TList::IsEmptyList(&(content_info.column_names))){
+                        for (int c = 0; c < content_info.num_columns; c++){
+                            ImGui::TableSetupColumn(TList::GetIndexListNode(content_info.column_names, c)->info.str_info);
+                        }
+                        ImGui::TableHeadersRow();
+                    }
+                }else{
+                    //Draws Register value
+                    if(!TList::IsEmptyList(&(content_info.values))){
+                        ImGui::TableNextRow();
+                        for (int c = 0; c < content_info.num_columns; c++){
+                            ImGui::TableNextColumn();
+                            ImGui::Text("%s", TList::GetIndexListNode(content_info.values , (r*content_info.num_columns)+c)->info.str_info);
+                        }
                     }
                 }
             }
+            
             ImGui::EndTable();
         }
     }

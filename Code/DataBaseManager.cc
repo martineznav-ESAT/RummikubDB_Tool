@@ -29,11 +29,11 @@ namespace DataBaseManager{
         switch (query){
         case BaseSQL_Querys::SELECT_TABLENAME:
             
-            r_query = (char*) malloc(sizeof(char)*(strlen(tablename) + strlen(kBaseSQL_Querys[(int)query])));
+            r_query = (char*) malloc(sizeof(char)*(1 + strlen(tablename) + strlen(kBaseSQL_Querys[(int)query])));
 
             snprintf(
                 (char*)r_query,
-                strlen(kBaseSQL_Querys[(int)query]) + strlen(tablename),
+                1 + strlen(kBaseSQL_Querys[(int)query]) + strlen(tablename),
                 kBaseSQL_Querys[(int)query],
                 tablename
             );
@@ -45,7 +45,8 @@ namespace DataBaseManager{
             break;
         }
 
-        printf("%s\n\n",r_query);
+        //DEBUG
+        // printf("%s\n\n",r_query);
         return r_query;
     }
 

@@ -28,12 +28,49 @@ namespace TablesModule{
         DataBaseManager::QueryErrorManager(qResult, DataBaseManager::error_msg);
     }
 
+    void GetColumnsOnEmptyQuery(char* st_query){
+        printf("EMPTY QUERY\n");
+        TList::ListInfo info_aux;
+        
+        sqlite3_stmt* stmt;
+
+        sqlite3_prepare_v2(
+            DataBaseManager::db,
+            st_query,
+            -1,
+            &stmt,
+            nullptr
+        );
+
+        ContentModule::content_info.is_loaded = true;
+        ContentModule::content_info.num_columns = sqlite3_column_count(stmt);
+        ContentModule::content_info.num_rows = 0;
+
+        TList::ClearList(&(ContentModule::content_info.column_names));
+        TList::ClearList(&(ContentModule::content_info.values));
+        for (int i = 0; i < ContentModule::content_info.num_columns; i++) {
+
+            info_aux.str_info = (char*)malloc(sizeof(char) * (strlen(sqlite3_column_name(stmt, i))+1));
+            strcpy(info_aux.str_info, sqlite3_column_name(stmt, i));
+            TList::InsertList(&(ContentModule::content_info.column_names), TList::ListType::STRING ,info_aux);
+
+            //DEBUG
+            // printf("%s\n", info_aux.str_info);
+        }
+
+        sqlite3_finalize(stmt);
+    }
+
     //Function that executes the basic select query for the table selected at the moment
     void CallSelectedTableQuery(){
         char* st_query = DataBaseManager::GetBaseQuery(DataBaseManager::BaseSQL_Querys::SELECT_TABLENAME, TList::GetIndexListNode(db_tables, selectedTable)->info.str_info);
 
+        Callbacks::is_callback_called = false;
         qResult = sqlite3_exec(DataBaseManager::db, st_query, Callbacks::CB_SelectTableName, &(ContentModule::content_info), &(DataBaseManager::error_msg));   
-        
+        if(!Callbacks::is_callback_called){
+            GetColumnsOnEmptyQuery(st_query);
+        }
+
         free(st_query);
     }
 
@@ -55,7 +92,7 @@ namespace TablesModule{
                 ContentModule::content_info.is_loaded = false;
                 //If there's a selected table at the moment of the list creation or on table selection, a basic Select query is called
                 //for the selected table, showing the information in the ContentModule
-                printf("Selected %s\n", TList::GetIndexListNode(db_tables, i)->info.str_info);
+                // printf("Selected %s\n", TList::GetIndexListNode(db_tables, i)->info.str_info);
                 selectedTable = i;
                 
                 CallSelectedTableQuery();
