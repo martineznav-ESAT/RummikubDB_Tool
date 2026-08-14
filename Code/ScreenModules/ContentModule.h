@@ -3,7 +3,17 @@
 #ifndef ContentModule_H
 #define ContentModule_H
 
+#include "../../Libs/CustomLibs/TList.h"
+
 namespace ContentModule{
+    struct ContentInfo{
+        bool is_loaded = false;
+        int num_columns, num_rows;
+        TList::ListNode *values;
+        TList::ListNode *column_names;
+    };
+
+    extern ContentInfo content_info;
 
     //Inicialization function
     void Init();

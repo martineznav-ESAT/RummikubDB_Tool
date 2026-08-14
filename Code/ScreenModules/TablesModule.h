@@ -3,7 +3,15 @@
 #ifndef TablesModule_H
 #define TablesModule_H
 
+#include "../DataBaseManager.h"
+#include "../Callbacks.h"
+
+#include "../../Libs/CustomLibs/Utils.h"
+#include "../../Libs/CustomLibs/TList.h"
+
 namespace TablesModule{
+    extern TList::ListNode* db_tables;
+    extern int selectedTable; 
 
     //Inicialization function
     void Init();
