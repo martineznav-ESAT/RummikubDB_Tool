@@ -19,7 +19,7 @@ namespace ContentModule{
     //Draws the table of the current query content. No matter if it is a custom query or a table selection
     void DrawContentTable(){
 
-        if(content_info.is_loaded && TablesModule::selectedTable != -1){
+        if(content_info.is_loaded){
             ImGui::BeginTable("content", content_info.num_columns, 
                 ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | 
                 ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY

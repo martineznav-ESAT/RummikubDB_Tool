@@ -30,8 +30,8 @@ namespace Callbacks{
     }
 
 
-    //Callback for "Select * from 'tablename' Query, printing the result on the ContentModule and the terminal
-    int CB_SelectTableName(void *q_content_info, int num_columns, char **values, char **column_names){
+    //Callback for any "Select-Type" Query, printing the result on the ContentModule and the terminal
+    int CB_SelectQuery(void *q_content_info, int num_columns, char **values, char **column_names){
         ContentModule::ContentInfo *info = (ContentModule::ContentInfo *) q_content_info;
 
         TList::ListInfo aux_str_info;

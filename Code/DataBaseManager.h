@@ -13,8 +13,17 @@ namespace DataBaseManager{
 
     enum BaseSQL_Querys{
         GET_TABLES,
-        SELECT_TABLENAME,
+        SELECT_QUERY,
         TOTAL_QUERYS
+    };
+
+    enum QueryType{
+        SELECT,
+        UPDATE,
+        INSERT,
+        DELETE,
+        ERROR,
+        TOTAL_QUERYTYPES
     };
 
     //Inicialization function
@@ -23,8 +32,14 @@ namespace DataBaseManager{
     //Returns the SQL String corresponding to the parameter enum value 
     char* GetBaseQuery(BaseSQL_Querys query, char* tablename = nullptr);
 
+    //Executes a custom select query given by the user
+    int ExecuteSelectQuery(char* s_query, bool is_custom_query = false);
+
     //Query error management
     int QueryErrorManager(int qResult, char* e_msg);
+
+    //Given a query string, returns the type of query it is based on the first word of the query
+    QueryType GetQueryType(char* query);
 
     //Ensures everything is closed and freed from memory
     void EmptyMemory();

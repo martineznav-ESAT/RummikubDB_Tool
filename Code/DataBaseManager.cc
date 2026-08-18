@@ -22,12 +22,35 @@ namespace DataBaseManager{
     sqlite3 *db;
     char* error_msg = 0;
 
+    //Given a query string, returns the type of query it is based on the first word of the query
+    QueryType GetQueryType(char* query){
+        QueryType result = QueryType::ERROR;
+        char* query_type = (char*) malloc(sizeof(char) * strlen(query)+1);
+
+        strcpy(query_type, query);
+        query_type = strtok(query_type, " ");
+
+        printf("QUERY TYPE: %s\n", query_type);
+        if(strcmp(strupr(query_type), "SELECT") == 0){
+            result = QueryType::SELECT;
+        }else if(strcmp(strupr(query_type), "UPDATE") == 0){
+            result = QueryType::UPDATE;
+        }else if(strcmp(strupr(query_type), "INSERT") == 0){
+            result = QueryType::INSERT;
+        }else if(strcmp(strupr(query_type), "DELETE") == 0){
+            result = QueryType::DELETE;
+        }
+
+        free(query_type);
+        return result;
+    }
+
     //Returns the SQL String corresponding to the parameter enum value 
     char* GetBaseQuery(BaseSQL_Querys query, char* tablename){
         char* r_query = nullptr; 
 
         switch (query){
-        case BaseSQL_Querys::SELECT_TABLENAME:
+        case BaseSQL_Querys::SELECT_QUERY:
             
             r_query = (char*) malloc(sizeof(char)*(1 + strlen(tablename) + strlen(kBaseSQL_Querys[(int)query])));
 
@@ -48,6 +71,49 @@ namespace DataBaseManager{
         //DEBUG
         // printf("%s\n\n",r_query);
         return r_query;
+    }
+
+     void GetColumnsOnEmptyQuery(char* st_query){
+        printf("EMPTY QUERY\n");
+        TList::ListInfo info_aux;
+        
+        sqlite3_stmt* stmt;
+
+        sqlite3_prepare_v2(
+            DataBaseManager::db,
+            st_query,
+            -1,
+            &stmt,
+            nullptr
+        );
+
+        ContentModule::content_info.is_loaded = true;
+        ContentModule::content_info.num_columns = sqlite3_column_count(stmt);
+        ContentModule::content_info.num_rows = 0;
+
+        TList::ClearList(&(ContentModule::content_info.column_names));
+        TList::ClearList(&(ContentModule::content_info.values));
+        for (int i = 0; i < ContentModule::content_info.num_columns; i++) {
+
+            info_aux.str_info = (char*)malloc(sizeof(char) * (strlen(sqlite3_column_name(stmt, i))+1));
+            strcpy(info_aux.str_info, sqlite3_column_name(stmt, i));
+            TList::InsertList(&(ContentModule::content_info.column_names), TList::ListType::STRING ,info_aux);
+
+            //DEBUG
+            // printf("%s\n", info_aux.str_info);
+        }
+
+        sqlite3_finalize(stmt);
+    }
+
+    int ExecuteSelectQuery(char* s_query, bool is_custom_query){
+        int qResult = 0;
+        Callbacks::is_callback_called = false;
+        qResult = sqlite3_exec(DataBaseManager::db, s_query, Callbacks::CB_SelectQuery, &(ContentModule::content_info), &(DataBaseManager::error_msg));   
+        if(!Callbacks::is_callback_called && !is_custom_query){
+            GetColumnsOnEmptyQuery(s_query);
+        }
+        return qResult;
     }
 
     //Query error management
