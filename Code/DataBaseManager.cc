@@ -16,7 +16,7 @@ namespace DataBaseManager{
     //Constant values of all the base/default sql querys used in the tool
     char* kBaseSQL_Querys[] = {
         "SELECT name FROM sqlite_master WHERE type = 'table' and name != 'sqlite_sequence'",
-        "SELECT * from %s"
+        "SELECT * from %s order by 1"
     };
 
     sqlite3 *db;

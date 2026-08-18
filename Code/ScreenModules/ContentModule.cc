@@ -16,6 +16,7 @@ namespace ContentModule{
 
     }
 
+    //Draws the table of the current query content. No matter if it is a custom query or a table selection
     void DrawContentTable(){
 
         if(content_info.is_loaded && TablesModule::selectedTable != -1){
@@ -24,8 +25,8 @@ namespace ContentModule{
                 ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY
             );
 
-            for (int r = -1; r < content_info.num_rows; r++){
-                if(r == -1){
+            for (int r = content_info.num_rows; r >= 0; r--){
+                if(r == content_info.num_rows){
                     //Draws Header value
                     if(!TList::IsEmptyList(&(content_info.column_names))){
                         for (int c = 0; c < content_info.num_columns; c++){
