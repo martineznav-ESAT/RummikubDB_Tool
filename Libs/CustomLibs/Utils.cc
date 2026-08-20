@@ -67,4 +67,40 @@ namespace Utils{
         free(time_buffer);
         return time_struct;
     }
+
+    //Returns the word at the given position of a string, considering the space character as a separator by default. 
+    //The first word is at position 0, the second at position 1, and so on.
+    //The word will be stored in the given destination string, or will return nullptr if there is no word at the given position.
+    void GetStringWordAtPosition(char** dest, char* str, int position, char separator){
+        if(str != nullptr && position >= 0){
+            char* aux_str = (char*) malloc(sizeof(char) * (strlen(str) + 1));
+
+            strcpy(aux_str, str);
+
+            char* word = strtok(aux_str, &separator);
+
+            for (int i = 0; i < position && word != NULL; i++) {
+                word = strtok(NULL, &separator);
+            }
+
+            //DEBUG
+            // printf("WORD AT POSITION %d: %s\n", position, word);
+
+            if (word != NULL) {
+                if(*dest == nullptr){
+                    *dest = (char*)malloc(sizeof(char) * (strlen(word) + 1));
+                }else{
+                    *dest = (char*)realloc(*dest, sizeof(char) * (strlen(word) + 1));
+                }
+                strcpy(*dest, word);
+
+            }
+
+            //DEBUG
+            // printf("WORD: %s\n", word);
+            // printf("DEST: %s\n", *dest);
+
+            free(aux_str);
+        }
+    }
 }

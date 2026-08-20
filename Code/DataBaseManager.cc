@@ -20,28 +20,34 @@ namespace DataBaseManager{
     };
 
     sqlite3 *db;
-    char* error_msg = 0;
+    char* error_msg = nullptr;
 
     //Given a query string, returns the type of query it is based on the first word of the query
     QueryType GetQueryType(char* query){
         QueryType result = QueryType::ERROR;
-        char* query_type = (char*) malloc(sizeof(char) * strlen(query)+1);
 
-        strcpy(query_type, query);
-        query_type = strtok(query_type, " ");
+        if(query == nullptr || strlen(query) <= 0){
+            printf("ERROR: Query is empty\n");
+        }else{
+            char* query_type = (char*) malloc(sizeof(char) * strlen(query)+1);
 
-        printf("QUERY TYPE: %s\n", query_type);
-        if(strcmp(strupr(query_type), "SELECT") == 0){
-            result = QueryType::SELECT;
-        }else if(strcmp(strupr(query_type), "UPDATE") == 0){
-            result = QueryType::UPDATE;
-        }else if(strcmp(strupr(query_type), "INSERT") == 0){
-            result = QueryType::INSERT;
-        }else if(strcmp(strupr(query_type), "DELETE") == 0){
-            result = QueryType::DELETE;
+            strcpy(query_type, query);
+            query_type = strtok(query_type, " ");
+
+            printf("QUERY TYPE: %s\n", query_type);
+            if(strcmp(strupr(query_type), "SELECT") == 0){
+                result = QueryType::SELECT;
+            }else if(strcmp(strupr(query_type), "UPDATE") == 0){
+                result = QueryType::UPDATE;
+            }else if(strcmp(strupr(query_type), "INSERT") == 0){
+                result = QueryType::INSERT;
+            }else if(strcmp(strupr(query_type), "DELETE") == 0){
+                result = QueryType::DELETE;
+            }
+
+            free(query_type);
         }
-
-        free(query_type);
+        
         return result;
     }
 
@@ -106,8 +112,9 @@ namespace DataBaseManager{
         sqlite3_finalize(stmt);
     }
 
+    //Executes the given SELECT query and returns the result of the query execution
     int ExecuteSelectQuery(char* s_query, bool is_custom_query){
-        int qResult = 0;
+        int qResult = 1;
         Callbacks::is_callback_called = false;
         qResult = sqlite3_exec(DataBaseManager::db, s_query, Callbacks::CB_SelectQuery, &(ContentModule::content_info), &(DataBaseManager::error_msg));   
         if(!Callbacks::is_callback_called && !is_custom_query){
@@ -116,13 +123,37 @@ namespace DataBaseManager{
         return qResult;
     }
 
-    //Query error management
-    int QueryErrorManager(int qResult, char* e_msg){
-        if(qResult != SQLITE_OK){
-            fprintf(stderr, "Failed to select data\n");
-            fprintf(stderr, "SQL Error: %s\n",e_msg);
+    //Executes the given SELECT query and returns the result of the query execution
+    int ExecuteUpdateQuery(char* u_query, bool is_custom_query){
+        int qResult = 1;
+        TList::ListInfo aux_info;
+        aux_info.str_info = nullptr;
 
-            sqlite3_free(e_msg);
+        Utils::GetStringWordAtPosition(&aux_info.str_info, u_query, 1);
+
+        //DEBUG
+        printf("TABLE NAME: %s\n", aux_info.str_info);
+        
+
+        if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
+            printf("ERROR: Table not found in database\n");
+            DataBaseManager::error_msg = (char*) malloc(sizeof(char) * (strlen("Table not found in database")+1));  
+            strcpy(DataBaseManager::error_msg, "Table not found in database");
+            qResult = SQLITE_ERROR;
+        }else{
+            qResult = sqlite3_exec(DataBaseManager::db, u_query, nullptr, nullptr, &(DataBaseManager::error_msg));   
+        }
+
+        free(aux_info.str_info);
+
+        return qResult;
+    }
+
+    //Query error management
+    int QueryErrorManager(int qResult, char** e_msg){
+        if(qResult != SQLITE_OK){
+            fprintf(stderr, "SQL Error:\n%s\n",*e_msg);
+            sqlite3_free(*e_msg);
         }
 
         return qResult;

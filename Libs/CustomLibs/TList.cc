@@ -38,6 +38,13 @@ namespace TList{
                 break;
             }
         }
+
+        //DEBUG
+        // if(aux == nullptr){
+        //     printf(" >>> Not found in list\n");
+        // }else{
+        //     printf(" >>> Found in list\n");
+        // }
         
         return aux;
     }

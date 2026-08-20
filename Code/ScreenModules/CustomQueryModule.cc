@@ -44,12 +44,15 @@ namespace CustomQueryModule{
                     ContentModule::content_info.is_loaded = false;
                     DataBaseManager::QueryErrorManager(
                         DataBaseManager::ExecuteSelectQuery(query_input, true), 
-                        DataBaseManager::error_msg
+                        &(DataBaseManager::error_msg)
                     );
                     break;
                 case DataBaseManager::QueryType::UPDATE:
-                    /* TO_DO */
                     printf("UPDATE QUERY\n");
+                    DataBaseManager::QueryErrorManager(
+                        DataBaseManager::ExecuteUpdateQuery(query_input, true), 
+                        &(DataBaseManager::error_msg)
+                    );
                     break;
                 case DataBaseManager::QueryType::INSERT:
                     /* TO_DO */

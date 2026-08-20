@@ -32,11 +32,14 @@ namespace DataBaseManager{
     //Returns the SQL String corresponding to the parameter enum value 
     char* GetBaseQuery(BaseSQL_Querys query, char* tablename = nullptr);
 
-    //Executes a custom select query given by the user
+    //Executes a select query given by the user
     int ExecuteSelectQuery(char* s_query, bool is_custom_query = false);
 
+    //Executes an update query given by the user
+    int ExecuteUpdateQuery(char* u_query, bool is_custom_query = false);
+
     //Query error management
-    int QueryErrorManager(int qResult, char* e_msg);
+    int QueryErrorManager(int qResult, char** e_msg);
 
     //Given a query string, returns the type of query it is based on the first word of the query
     QueryType GetQueryType(char* query);

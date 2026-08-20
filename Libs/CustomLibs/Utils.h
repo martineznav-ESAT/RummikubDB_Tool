@@ -44,6 +44,11 @@ namespace Utils{
 
     //Transforms a timestamp given of time_t type into a tm structure corrected with the local timezone.
     tm TimestampToStructTM(time_t timestamp);
+
+    //Returns the word at the given position of a string, considering the space character as a separator by default. 
+    //The first word is at position 0, the second at position 1, and so on.
+    //The word will be stored in the given destination string, or will return nullptr if there is no word at the given position.
+    void GetStringWordAtPosition(char** dest, char* str, int position, char separator = ' ');
 }
 
 #endif

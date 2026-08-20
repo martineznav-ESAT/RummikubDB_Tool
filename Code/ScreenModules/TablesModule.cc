@@ -25,7 +25,7 @@ namespace TablesModule{
         db_tables = TList::CreateList();
 
         qResult = sqlite3_exec(DataBaseManager::db, DataBaseManager::GetBaseQuery(DataBaseManager::BaseSQL_Querys::GET_TABLES), Callbacks::CB_GetTables, &db_tables, &(DataBaseManager::error_msg));   
-        DataBaseManager::QueryErrorManager(qResult, DataBaseManager::error_msg);
+        DataBaseManager::QueryErrorManager(qResult, &(DataBaseManager::error_msg));
     }
 
 
