@@ -123,16 +123,17 @@ namespace DataBaseManager{
         return qResult;
     }
 
-    //Executes the given SELECT query and returns the result of the query execution
+    //Executes the given Update query and shows the result of the query execution
     int ExecuteUpdateQuery(char* u_query, bool is_custom_query){
         int qResult = 1;
         TList::ListInfo aux_info;
         aux_info.str_info = nullptr;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, u_query, 1);
+        strupr(aux_info.str_info);
 
         //DEBUG
-        printf("TABLE NAME: %s\n", aux_info.str_info);
+        // printf("TABLE NAME: %s\n", aux_info.str_info);
         
 
         if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
@@ -142,6 +143,60 @@ namespace DataBaseManager{
             qResult = SQLITE_ERROR;
         }else{
             qResult = sqlite3_exec(DataBaseManager::db, u_query, nullptr, nullptr, &(DataBaseManager::error_msg));   
+        }
+
+        free(aux_info.str_info);
+
+        return qResult;
+    }
+
+    //Executes the given Insert query and returns the result of the query execution
+    int ExecuteInsertQuery(char* i_query, bool is_custom_query){
+        int qResult = 1;
+        TList::ListInfo aux_info;
+        aux_info.str_info = nullptr;
+
+        Utils::GetStringWordAtPosition(&aux_info.str_info, i_query, 2);
+        strupr(aux_info.str_info);
+
+        //DEBUG
+        // printf("TABLE NAME: %s\n", aux_info.str_info);
+        
+
+        if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
+            printf("ERROR: Table not found in database\n");
+            DataBaseManager::error_msg = (char*) malloc(sizeof(char) * (strlen("Table not found in database")+1));  
+            strcpy(DataBaseManager::error_msg, "Table not found in database");
+            qResult = SQLITE_ERROR;
+        }else{
+            qResult = sqlite3_exec(DataBaseManager::db, i_query, nullptr, nullptr, &(DataBaseManager::error_msg));   
+        }
+
+        free(aux_info.str_info);
+
+        return qResult;
+    }
+
+    //Executes the given Delete query and returns the result of the query execution
+    int ExecuteDeleteQuery(char* d_query, bool is_custom_query){
+        int qResult = 1;
+        TList::ListInfo aux_info;
+        aux_info.str_info = nullptr;
+
+        Utils::GetStringWordAtPosition(&aux_info.str_info, d_query, 2);
+        strupr(aux_info.str_info);
+
+        //DEBUG
+        // printf("TABLE NAME: %s\n", aux_info.str_info);
+        
+
+        if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
+            printf("ERROR: Table not found in database\n");
+            DataBaseManager::error_msg = (char*) malloc(sizeof(char) * (strlen("Table not found in database")+1));  
+            strcpy(DataBaseManager::error_msg, "Table not found in database");
+            qResult = SQLITE_ERROR;
+        }else{
+            qResult = sqlite3_exec(DataBaseManager::db, d_query, nullptr, nullptr, &(DataBaseManager::error_msg));   
         }
 
         free(aux_info.str_info);

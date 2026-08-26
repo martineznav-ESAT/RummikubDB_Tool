@@ -19,6 +19,9 @@ namespace TablesModule{
     //Draws the module window
     void Draw();
 
+    //Function that executes the basic select query for the table selected at the moment
+    void CallSelectedTableQuery();
+
     //Ensures everything is closed and freed from memory
     void EmptyMemory();
 }

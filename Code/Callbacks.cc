@@ -21,6 +21,7 @@ namespace Callbacks{
         strcpy(aux_info.str_info, values[0]);
         
         if(TList::InsertList(tables, TList::ListType::STRING, aux_info)){
+            strupr(aux_info.str_info);
             printf("LOADED TABLE %s\n",values[0]);
         }else{
             printf("TABLE NOT LOADED %s\n",values[0]);
