@@ -99,7 +99,7 @@ namespace DataBaseManager{
 
         TList::ClearList(&(ContentModule::content_info.column_names));
         TList::ClearList(&(ContentModule::content_info.values));
-        for (int i = 0; i < ContentModule::content_info.num_columns; i++) {
+        for (int i = (ContentModule::content_info.num_columns)-1; i >= 0 ; i--) {
 
             info_aux.str_info = (char*)malloc(sizeof(char) * (strlen(sqlite3_column_name(stmt, i))+1));
             strcpy(info_aux.str_info, sqlite3_column_name(stmt, i));
