@@ -63,7 +63,7 @@ namespace CustomQueryModule{
                 break;
         }
 
-        if(q_result == SQLITE_OK){
+        if(DataBaseManager::GetQueryType(q_input) != DataBaseManager::QueryType::SELECT && q_result == SQLITE_OK){
             TablesModule::CallSelectedTableQuery();
         }
     }
