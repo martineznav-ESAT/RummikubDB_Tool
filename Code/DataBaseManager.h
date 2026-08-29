@@ -8,9 +8,6 @@
 #include "./ScreenModules/ModulesManager.h"
 
 namespace DataBaseManager{
-    extern sqlite3 *db;
-    extern char* error_msg;
-
     enum BaseSQL_Querys{
         GET_TABLES,
         SELECT_QUERY,
@@ -25,6 +22,22 @@ namespace DataBaseManager{
         ERROR,
         TOTAL_QUERYTYPES
     };
+
+    enum PopUpType{
+        POP_INFO,
+        POP_ERROR,
+        TOTAL_POPUPTYPES
+    };
+
+    struct PopUpValues{
+        char* name = nullptr;
+        bool is_opening = false;
+        PopUpType popup_type = PopUpType::POP_INFO;
+        char* popup_msg = nullptr;
+    };
+
+    extern sqlite3 *db;
+    extern PopUpValues notif_pop_up;
 
     //Inicialization function
     int Init();
@@ -45,7 +58,13 @@ namespace DataBaseManager{
     int ExecuteDeleteQuery(char* d_query, bool is_custom_query = false);
 
     //Query error management
-    int QueryErrorManager(int qResult, char** e_msg);
+    int QueryErrorManager(int qResult);
+
+    //Applies the param values to the PopUpValues struct given and opens the modal if said so
+    void SetPopUpValues(PopUpValues *pop_up, PopUpType nt_type, char* msg, bool open = true);
+
+    //Draws the given pop_up based on its values
+    void DrawPopUp(PopUpValues *pop_up);
 
     //Given a query string, returns the type of query it is based on the first word of the query
     QueryType GetQueryType(char* query);

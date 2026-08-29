@@ -26,46 +26,69 @@ namespace CustomQueryModule{
 
     void ExecuteCustomQuery(char* q_input){
         int q_result = 1;
+
+        //Aux values for CUD queries
+        char msg[254];
+        int changes;
         switch (DataBaseManager::GetQueryType(q_input)){
             case DataBaseManager::QueryType::SELECT:
                 // printf("SELECT QUERY\n");
                 ContentModule::content_info.is_loaded = false;
                 q_result = DataBaseManager::QueryErrorManager(
-                    DataBaseManager::ExecuteSelectQuery(q_input, true), 
-                    &(DataBaseManager::error_msg)
+                    DataBaseManager::ExecuteSelectQuery(q_input, true)
                 );
                 break;
             case DataBaseManager::QueryType::UPDATE:
                 // printf("UPDATE QUERY\n");
                 q_result = DataBaseManager::QueryErrorManager(
-                    DataBaseManager::ExecuteUpdateQuery(q_input, true), 
-                    &(DataBaseManager::error_msg)
+                    DataBaseManager::ExecuteUpdateQuery(q_input, true)
                 );
+                if(q_result == SQLITE_OK){
+                    changes = sqlite3_changes(DataBaseManager::db);
+                    snprintf(msg, sizeof(msg), "Updated rows: %d\n",changes);
+                }
                 break;
             case DataBaseManager::QueryType::INSERT:
                 // printf("INSERT QUERY\n");
                 q_result = DataBaseManager::QueryErrorManager(
-                    DataBaseManager::ExecuteInsertQuery(q_input, true), 
-                    &(DataBaseManager::error_msg)
+                    DataBaseManager::ExecuteInsertQuery(q_input, true) 
                 );
+
+                if(q_result == SQLITE_OK){
+                    changes = sqlite3_changes(DataBaseManager::db);
+                    snprintf(msg, sizeof(msg), "Inserted values: %d\n",changes);
+                }
                 break;
             case DataBaseManager::QueryType::DELETE:
                 // printf("DELETE QUERY\n");
                 q_result = DataBaseManager::QueryErrorManager(
-                    DataBaseManager::ExecuteDeleteQuery(q_input, true), 
-                    &(DataBaseManager::error_msg)
+                    DataBaseManager::ExecuteDeleteQuery(q_input, true) 
                 );
+
+                if(q_result == SQLITE_OK){
+                    changes = sqlite3_changes(DataBaseManager::db);
+                    snprintf(msg, sizeof(msg), "Deleted values: %d\n",changes);
+                }
                 break;
             default:
-                /*TO_DO POP_UP*/
-                printf("ERROR: Invalid query type\n");
-                printf("Valid types: SELECT, UPDATE, INSERT, DELETE\n");
+                DataBaseManager::SetPopUpValues(
+                    &DataBaseManager::notif_pop_up,
+                    DataBaseManager::PopUpType::POP_ERROR, 
+                    "Invalid query type\nValid types: SELECT, UPDATE, INSERT, DELETE\n"
+                );
+
                 break;
         }
 
         if(DataBaseManager::GetQueryType(q_input) != DataBaseManager::QueryType::SELECT && q_result == SQLITE_OK){
             TablesModule::CallSelectedTableQuery();
+            DataBaseManager::SetPopUpValues(
+                &DataBaseManager::notif_pop_up,
+                DataBaseManager::PopUpType::POP_INFO, 
+                msg
+            );
         }
+
     }
 
     //Draws on screen the bottom space in which the user can execute custom querys

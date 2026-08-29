@@ -23,11 +23,6 @@ void Init(){
     DataBaseManager::Init();
 }
 
-// Launches the current screen update functions needed 
-void Update(){
-
-}
-
 // Launches the current screen draw functions needed 
 void Draw(){
     esat::DrawClear(0,0,0);
@@ -35,6 +30,7 @@ void Draw(){
     ModulesManager::DrawScreenModule(ModulesManager::S_Module::TABLES);
     ModulesManager::DrawScreenModule(ModulesManager::S_Module::QUERY_CONTENT);
     ModulesManager::DrawScreenModule(ModulesManager::S_Module::CUSTOM_QUERYS);
+    DataBaseManager::DrawPopUp(&DataBaseManager::notif_pop_up);
 
     esat::DrawEnd();  	
 }
@@ -67,12 +63,11 @@ int esat::main(int argc, char **argv) {
 
     Init();
 
+    
     while(CloseCondition()) {        
         Utils::last_time = esat::Time();
 
         esat::DrawBegin();
-
-        Update();
         Draw();
 
         ImGui::Render();

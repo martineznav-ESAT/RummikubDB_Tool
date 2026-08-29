@@ -24,18 +24,25 @@ namespace TablesModule{
     void Init(){
         db_tables = TList::CreateList();
 
-        qResult = sqlite3_exec(DataBaseManager::db, DataBaseManager::GetBaseQuery(DataBaseManager::BaseSQL_Querys::GET_TABLES), Callbacks::CB_GetTables, &db_tables, &(DataBaseManager::error_msg));   
-        DataBaseManager::QueryErrorManager(qResult, &(DataBaseManager::error_msg));
+        qResult = sqlite3_exec(DataBaseManager::db, DataBaseManager::GetBaseQuery(DataBaseManager::BaseSQL_Querys::GET_TABLES), Callbacks::CB_GetTables, &db_tables, &(DataBaseManager::notif_pop_up.popup_msg));   
+        DataBaseManager::QueryErrorManager(qResult);
     }
 
 
     //Function that executes the basic select query for the table selected at the moment
     void CallSelectedTableQuery(){
-        char* st_query = DataBaseManager::GetBaseQuery(DataBaseManager::BaseSQL_Querys::SELECT_QUERY, TList::GetIndexListNode(db_tables, selectedTable)->info.str_info);
+        if(selectedTable > -1){
+            char* st_query = DataBaseManager::GetBaseQuery(DataBaseManager::BaseSQL_Querys::SELECT_QUERY, TList::GetIndexListNode(db_tables, selectedTable)->info.str_info);
+            printf("NEW QUERY\n%s\n",st_query);
 
-        qResult = DataBaseManager::ExecuteSelectQuery(st_query);
+            ContentModule::content_info.is_loaded = false;
+            TList::ClearList(&ContentModule::content_info.column_names);
+            TList::ClearList(&ContentModule::content_info.values);
 
-        free(st_query);
+            qResult = DataBaseManager::ExecuteSelectQuery(st_query);
+
+            free(st_query);
+        }
     }
 
     //Shows the available tables as interactive selectables
@@ -53,9 +60,10 @@ namespace TablesModule{
                     ImVec2(0, 25)
                 )
             ){
-                ContentModule::content_info.is_loaded = false;
                 //If there's a selected table at the moment of the list creation or on table selection, a basic Select query is called
                 //for the selected table, showing the information in the ContentModule
+
+                // DEBUG
                 // printf("Selected %s\n", TList::GetIndexListNode(db_tables, i)->info.str_info);
                 selectedTable = i;
                 

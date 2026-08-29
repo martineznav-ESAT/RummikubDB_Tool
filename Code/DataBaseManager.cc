@@ -20,21 +20,27 @@ namespace DataBaseManager{
     };
 
     sqlite3 *db;
-    char* error_msg = nullptr;
+    PopUpValues notif_pop_up;
 
     //Given a query string, returns the type of query it is based on the first word of the query
     QueryType GetQueryType(char* query){
         QueryType result = QueryType::ERROR;
 
         if(query == nullptr || strlen(query) <= 0){
-            printf("ERROR: Query is empty\n");
+            DataBaseManager::SetPopUpValues(
+                &DataBaseManager::notif_pop_up,
+                DataBaseManager::PopUpType::POP_ERROR, 
+                "Query is empty\n",
+                true
+            );
         }else{
             char* query_type = (char*) malloc(sizeof(char) * strlen(query)+1);
 
             strcpy(query_type, query);
             query_type = strtok(query_type, " ");
 
-            printf("QUERY TYPE: %s\n", query_type);
+            //DEBUG
+            // printf("QUERY TYPE: %s\n", query_type);
             if(strcmp(strupr(query_type), "SELECT") == 0){
                 result = QueryType::SELECT;
             }else if(strcmp(strupr(query_type), "UPDATE") == 0){
@@ -60,6 +66,7 @@ namespace DataBaseManager{
             
             r_query = (char*) malloc(sizeof(char)*(1 + strlen(tablename) + strlen(kBaseSQL_Querys[(int)query])));
 
+            //Builds the select query with the tablename given
             snprintf(
                 (char*)r_query,
                 1 + strlen(kBaseSQL_Querys[(int)query]) + strlen(tablename),
@@ -79,8 +86,8 @@ namespace DataBaseManager{
         return r_query;
     }
 
-     void GetColumnsOnEmptyQuery(char* st_query){
-        printf("EMPTY QUERY\n");
+    //Saves the columns of the given query in case it returns no values
+    void GetColumnsOnEmptyQuery(char* st_query){
         TList::ListInfo info_aux;
         
         sqlite3_stmt* stmt;
@@ -116,11 +123,20 @@ namespace DataBaseManager{
     int ExecuteSelectQuery(char* s_query, bool is_custom_query){
         int qResult = 1;
         Callbacks::is_callback_called = false;
-        qResult = sqlite3_exec(DataBaseManager::db, s_query, Callbacks::CB_SelectQuery, &(ContentModule::content_info), &(DataBaseManager::error_msg));   
+        qResult = sqlite3_exec(DataBaseManager::db, s_query, Callbacks::CB_SelectQuery, &(ContentModule::content_info), &(DataBaseManager::notif_pop_up.popup_msg));   
         if(!Callbacks::is_callback_called && !is_custom_query){
             GetColumnsOnEmptyQuery(s_query);
         }
         return qResult;
+    }
+
+    //Sets the popup values to show an error saying the table has not been found
+    void SetTableNotFoundError(){
+        DataBaseManager::SetPopUpValues(
+            &DataBaseManager::notif_pop_up,
+            DataBaseManager::PopUpType::POP_ERROR, 
+            "Table not found in database\n"
+        );
     }
 
     //Executes the given Update query and shows the result of the query execution
@@ -137,12 +153,10 @@ namespace DataBaseManager{
         
 
         if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
-            printf("ERROR: Table not found in database\n");
-            DataBaseManager::error_msg = (char*) malloc(sizeof(char) * (strlen("Table not found in database")+1));  
-            strcpy(DataBaseManager::error_msg, "Table not found in database");
+            SetTableNotFoundError();
             qResult = SQLITE_ERROR;
         }else{
-            qResult = sqlite3_exec(DataBaseManager::db, u_query, nullptr, nullptr, &(DataBaseManager::error_msg));   
+            qResult = sqlite3_exec(DataBaseManager::db, u_query, nullptr, nullptr, &(DataBaseManager::notif_pop_up.popup_msg));   
         }
 
         free(aux_info.str_info);
@@ -164,12 +178,10 @@ namespace DataBaseManager{
         
 
         if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
-            printf("ERROR: Table not found in database\n");
-            DataBaseManager::error_msg = (char*) malloc(sizeof(char) * (strlen("Table not found in database")+1));  
-            strcpy(DataBaseManager::error_msg, "Table not found in database");
+            SetTableNotFoundError();
             qResult = SQLITE_ERROR;
         }else{
-            qResult = sqlite3_exec(DataBaseManager::db, i_query, nullptr, nullptr, &(DataBaseManager::error_msg));   
+            qResult = sqlite3_exec(DataBaseManager::db, i_query, nullptr, nullptr, &(DataBaseManager::notif_pop_up.popup_msg));   
         }
 
         free(aux_info.str_info);
@@ -184,19 +196,19 @@ namespace DataBaseManager{
         aux_info.str_info = nullptr;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, d_query, 2);
-        strupr(aux_info.str_info);
+        if(aux_info.str_info){
+            strupr(aux_info.str_info);
+        }
 
         //DEBUG
-        // printf("TABLE NAME: %s\n", aux_info.str_info);
+        printf("TABLE NAME: %s\n", aux_info.str_info);
         
 
         if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
-            printf("ERROR: Table not found in database\n");
-            DataBaseManager::error_msg = (char*) malloc(sizeof(char) * (strlen("Table not found in database")+1));  
-            strcpy(DataBaseManager::error_msg, "Table not found in database");
+            SetTableNotFoundError();
             qResult = SQLITE_ERROR;
         }else{
-            qResult = sqlite3_exec(DataBaseManager::db, d_query, nullptr, nullptr, &(DataBaseManager::error_msg));   
+            qResult = sqlite3_exec(DataBaseManager::db, d_query, nullptr, nullptr, &(DataBaseManager::notif_pop_up.popup_msg));   
         }
 
         free(aux_info.str_info);
@@ -205,18 +217,87 @@ namespace DataBaseManager{
     }
 
     //Query error management
-    int QueryErrorManager(int qResult, char** e_msg){
+    int QueryErrorManager(int qResult){
+
         if(qResult != SQLITE_OK){
-            fprintf(stderr, "SQL Error:\n%s\n",*e_msg);
-            sqlite3_free(*e_msg);
+            SetPopUpValues(
+                &DataBaseManager::notif_pop_up,
+                PopUpType::POP_ERROR,
+                DataBaseManager::notif_pop_up.popup_msg
+            );
         }
 
         return qResult;
     }
 
+    //Applies the param values to the PopUpValues struct given and opens the pop up if it's currently closed
+    void SetPopUpValues(PopUpValues *pop_up, PopUpType pop_type, char* msg, bool open){
+        pop_up->popup_type = pop_type;
+
+        //This conditionals are used with the objective of using custom messages and sqlite3 messages with the same popup_msg variable
+        //Since sqlite3 frees the error message buffer or they can be the same location, the conditionals bypass this problem
+        //and makes sure the popup message shows without crashing
+
+        if(pop_up->popup_msg == nullptr){
+            pop_up->popup_msg = (char*) malloc(sizeof(char)*254);
+        }
+        if(pop_up->popup_msg != msg){
+            strcpy(pop_up->popup_msg, msg);
+        }
+        pop_up->is_opening = open;
+    }
+
+    //Draws the given pop_up based on its values
+    void DrawPopUp(PopUpValues *pop_up){
+        float popup_width = 400;
+        char popup_label[256];
+        ImVec2 center = ImVec2(
+            ImGui::GetIO().DisplaySize.x * 0.5f,
+            ImGui::GetIO().DisplaySize.y * 0.5f
+        );
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        
+        //Popup label selection based on POP_TYPE
+        switch (pop_up->popup_type){
+            case DataBaseManager::PopUpType::POP_ERROR:
+                snprintf(popup_label, sizeof(popup_label), "ERROR ON QUERY STATEMENT##%s",pop_up->name);
+            break;
+
+            case DataBaseManager::PopUpType::POP_INFO:
+                snprintf(popup_label, sizeof(popup_label), "QUERY INFO##%s",pop_up->name);
+            break;
+        }
+
+        if(pop_up->is_opening){
+            ImGui::OpenPopup(popup_label);
+            pop_up->is_opening = false;
+        }
+
+        ImGui::SetNextWindowSize(
+            ImVec2(popup_width, 0),
+            ImGuiCond_Appearing
+        );
+
+        if (ImGui::BeginPopupModal(popup_label, NULL, ImGuiWindowFlags_NoResize)){
+            ImGui::TextWrapped("%s", pop_up->popup_msg);
+
+            ImGui::Separator();
+
+            if (ImGui::Button("OK", ImVec2(-1, 0))){
+                ImGui::CloseCurrentPopup(); 
+            }
+            ImGui::EndPopup();
+        }
+    }
+
     //Inicialization function
     int Init(){
         int qResult = sqlite3_open(kDB_location, &db);
+        
+        notif_pop_up.name = "Notification_PopUp";
+        notif_pop_up.popup_msg = (char*) malloc(sizeof(char)*254);
+
 
         if(qResult != SQLITE_OK){
             fprintf(stderr, "Could not open database: %s\n",sqlite3_errmsg(db));
@@ -236,5 +317,6 @@ namespace DataBaseManager{
         TablesModule::EmptyMemory();
         ContentModule::EmptyMemory();
         CustomQueryModule::EmptyMemory();
+        free(notif_pop_up.popup_msg);
     }
 }

@@ -22,9 +22,6 @@ namespace Callbacks{
         
         if(TList::InsertList(tables, TList::ListType::STRING, aux_info)){
             strupr(aux_info.str_info);
-            printf("LOADED TABLE %s\n",values[0]);
-        }else{
-            printf("TABLE NOT LOADED %s\n",values[0]);
         }
         
         return 0;
@@ -41,7 +38,6 @@ namespace Callbacks{
         is_callback_called = true;
 
         if((info->is_loaded)){
-            // printf("IS LOADED\n");
             for (int i = (info->num_columns)-1; i >= 0 ; i--){
                 //Save N Row Data
                 if(values[i] == nullptr){
@@ -60,8 +56,6 @@ namespace Callbacks{
             TList::ClearList(&(info->column_names));
             TList::ClearList(&(info->values));
 
-            // printf("NOT LOADED\n");
-            
             for (int i = (info->num_columns)-1; i >= 0 ; i--){
                 //Save Column names
                 aux_str_info.str_info = (char*) malloc(sizeof(char) * (strlen(column_names[i])+1));

@@ -22,7 +22,6 @@ namespace TList{
     //Searches for a node by value
     ListNode* FindInList(ListNode *list, ListInfo info){
         ListNode *aux = nullptr;
-        // printf("FindInList\n");
         if(list != nullptr){
             switch (list->type){
                 case ListType::INT:
