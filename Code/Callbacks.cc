@@ -32,67 +32,92 @@ namespace Callbacks{
     int CB_SelectQuery(void *q_content_info, int num_columns, char **values, char **column_names){
         ContentModule::ContentInfo *info = (ContentModule::ContentInfo *) q_content_info;
 
-        TList::ListInfo aux_str_info;
-        aux_str_info.str_info = nullptr;
+        TList::ListInfo info_aux;
+        TList::ListNode* row_aux;
+        TList::ListInfo row_info_aux;
 
         is_callback_called = true;
 
+        //If there's been at least 1 row loaded already...
         if((info->is_loaded)){
+            //Save N Row Data
+            row_aux = TList::CreateList();
             for (int i = (info->num_columns)-1; i >= 0 ; i--){
-                //Save N Row Data
-                if(values[i] == nullptr){
-                    aux_str_info.str_info = (char*) malloc(sizeof(char) * (strlen("NULL")+1));
-                    strcpy(aux_str_info.str_info, "NULL");
-                }else{
-                    aux_str_info.str_info = (char*) malloc(sizeof(char) * (strlen(values[i])+1));
-                    strcpy(aux_str_info.str_info, values[i]);
-                }
-                TList::InsertList(&(info->values), TList::ListType::STRING, aux_str_info);
-            }
-
-        }else{
-            info->num_columns = num_columns;
-            info->num_rows = 0;
-            TList::ClearList(&(info->column_names));
-            TList::ClearList(&(info->values));
-
-            for (int i = (info->num_columns)-1; i >= 0 ; i--){
-                //Save Column names
-                aux_str_info.str_info = (char*) malloc(sizeof(char) * (strlen(column_names[i])+1));
-                strcpy(aux_str_info.str_info, column_names[i]);
-                TList::InsertList(&(info->column_names), TList::ListType::STRING, aux_str_info);
-
                 //Save First Row Data
                 if(values[i] == nullptr){
-                    aux_str_info.str_info = (char*) malloc(sizeof(char) * (strlen("NULL")+1));
-                    strcpy(aux_str_info.str_info, "NULL");
+                    info_aux.str_info  = (char*) malloc(sizeof(char) * (strlen("NULL")+1));
+                    strcpy(info_aux.str_info , "NULL");
                 }else{
-                    aux_str_info.str_info = (char*) malloc(sizeof(char) * (strlen(values[i])+1));
-                    strcpy(aux_str_info.str_info, values[i]);
+                    info_aux.str_info = (char*) malloc(sizeof(char) * (strlen(values[i])+1));
+                    strcpy(info_aux.str_info, values[i]);
                 }
-                TList::InsertList(&(info->values), TList::ListType::STRING, aux_str_info);
+                TList::InsertList(
+                    &row_aux, 
+                    TList::ListType::STRING,
+                    info_aux
+                );
             }
+            //Save N register in table given as parameter
+            row_info_aux.list_info = row_aux;
+            TList::InsertList(
+                &(info->values), 
+                TList::ListType::LIST,
+                row_info_aux
+            );
+
+        }else{
+            //First Row Loaded
+            info->num_columns = num_columns;
+            info->num_rows = 0;
+            TList::ClearList(&(info->values));
+
+            row_aux = TList::CreateList();
+            for (int i = (info->num_columns)-1; i >= 0 ; i--){
+                //Saves Column Names 
+                info_aux.str_info = (char*) malloc(sizeof(char) * (strlen(column_names[i])+1));
+                strcpy(info_aux.str_info, column_names[i]);
+                TList::InsertList(
+                    &row_aux, 
+                    TList::ListType::STRING,
+                    info_aux
+                );
+            }
+            //Save colnames in table given as parameter
+            row_info_aux.list_info = row_aux;
+            TList::InsertList(
+                &(info->values), 
+                TList::ListType::LIST,
+                row_info_aux
+            );
+
+            row_aux = TList::CreateList();
+            for (int i = (info->num_columns)-1; i >= 0 ; i--){
+                //Save First Row Data
+                if(values[i] == nullptr){
+                    info_aux.str_info  = (char*) malloc(sizeof(char) * (strlen("NULL")+1));
+                    strcpy(info_aux.str_info , "NULL");
+                }else{
+                    info_aux.str_info = (char*) malloc(sizeof(char) * (strlen(values[i])+1));
+                    strcpy(info_aux.str_info, values[i]);
+                }
+                TList::InsertList(
+                    &row_aux, 
+                    TList::ListType::STRING,
+                    info_aux
+                );
+            }
+            //Save first register in table given as parameter
+            row_info_aux.list_info = row_aux;
+            TList::InsertList(
+                &(info->values), 
+                TList::ListType::LIST,
+                row_info_aux
+            );
+
+
             info->is_loaded = true;
         }
-        info->num_rows++;
 
-        //DEBUG
-        // printf("%p\n",info);
-        // for (int i = 0; i < info->num_columns; i++)
-        // {
-        //     printf("%s ",TList::GetIndexListNode(info->column_names, i)->info.str_info);
-        // }
-        // printf("\n");
-        // for (int i = 0; i < TList::ListLength(info->values); i++)
-        // {
-        //     printf("%s ",TList::GetIndexListNode(info->values, i)->info.str_info);
-        //     if((i+1)%info->num_columns == 0 && i!=0){
-        //         printf("\n");
-        //     }
-        // }
-        // printf("\n");
-        
-        
         return 0;
     }
 }

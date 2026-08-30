@@ -9,8 +9,11 @@ namespace ContentModule{
     struct ContentInfo{
         bool is_loaded = false;
         int num_columns, num_rows;
-        TList::ListNode *values;
-        TList::ListNode *column_names;
+        //Register Row list 
+        //where index 0 should correspond to the metadata/column types
+        //the last one should be the column names 
+        //and the registers exsist in between 
+        TList::ListNode *values; 
     };
 
     extern ContentInfo content_info;

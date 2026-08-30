@@ -31,12 +31,12 @@ namespace TablesModule{
 
     //Function that executes the basic select query for the table selected at the moment
     void CallSelectedTableQuery(){
+        char* st_query = nullptr;
+
         if(selectedTable > -1){
-            char* st_query = DataBaseManager::GetBaseQuery(DataBaseManager::BaseSQL_Querys::SELECT_QUERY, TList::GetIndexListNode(db_tables, selectedTable)->info.str_info);
-            printf("NEW QUERY\n%s\n",st_query);
+            st_query = DataBaseManager::GetBaseQuery(DataBaseManager::BaseSQL_Querys::SELECT_QUERY, TList::GetIndexListNode(db_tables, selectedTable)->info.str_info);
 
             ContentModule::content_info.is_loaded = false;
-            TList::ClearList(&ContentModule::content_info.column_names);
             TList::ClearList(&ContentModule::content_info.values);
 
             qResult = DataBaseManager::ExecuteSelectQuery(st_query);

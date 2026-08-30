@@ -89,7 +89,9 @@ namespace DataBaseManager{
     //Saves the columns of the given query in case it returns no values
     void GetColumnsOnEmptyQuery(char* st_query){
         TList::ListInfo info_aux;
-        
+        TList::ListNode* row_aux;
+        TList::ListInfo row_info_aux;
+
         sqlite3_stmt* stmt;
 
         sqlite3_prepare_v2(
@@ -102,19 +104,50 @@ namespace DataBaseManager{
 
         ContentModule::content_info.is_loaded = true;
         ContentModule::content_info.num_columns = sqlite3_column_count(stmt);
-        ContentModule::content_info.num_rows = 0;
 
-        TList::ClearList(&(ContentModule::content_info.column_names));
         TList::ClearList(&(ContentModule::content_info.values));
+
+        //DEBUG
+        // printf("START DATA GATHERING\n");
+        // printf("COL NAMES\n");
+        row_aux = TList::CreateList();
         for (int i = (ContentModule::content_info.num_columns)-1; i >= 0 ; i--) {
 
+            //Saves Column Names (Last index will be the column names)
             info_aux.str_info = (char*)malloc(sizeof(char) * (strlen(sqlite3_column_name(stmt, i))+1));
             strcpy(info_aux.str_info, sqlite3_column_name(stmt, i));
-            TList::InsertList(&(ContentModule::content_info.column_names), TList::ListType::STRING ,info_aux);
+            TList::InsertList(
+                &row_aux, 
+                TList::ListType::STRING,
+                info_aux
+            );
 
             //DEBUG
             // printf("%s\n", info_aux.str_info);
         }
+        //Save colnames in table content_info
+        row_info_aux.list_info = row_aux;
+        TList::InsertList(
+            &ContentModule::content_info.values, 
+            TList::ListType::LIST,
+            row_info_aux
+        );
+
+        //DEBUG
+        // TList::PrintList(ContentModule::content_info.values);
+        // TList::PrintList(
+        //     TList::GetIndexListNode(
+        //         ContentModule::content_info.values,
+        //         ContentModule::content_info.num_rows-1 //Index N-1 -> Column names
+        //     )->info.list_info
+        // );
+
+        // TList::PrintList(
+        //     TList::GetIndexListNode(
+        //         ContentModule::content_info.values,
+        //         0                                      //Index 0   -> Metadata/Column Types
+        //     )->info.list_info
+        // );
 
         sqlite3_finalize(stmt);
     }
@@ -123,10 +156,50 @@ namespace DataBaseManager{
     int ExecuteSelectQuery(char* s_query, bool is_custom_query){
         int qResult = 1;
         Callbacks::is_callback_called = false;
+        sqlite3_stmt* stmt;
+        TList::ListInfo info_aux;
+        TList::ListNode* row_aux;
+        TList::ListInfo row_info_aux;
+
         qResult = sqlite3_exec(DataBaseManager::db, s_query, Callbacks::CB_SelectQuery, &(ContentModule::content_info), &(DataBaseManager::notif_pop_up.popup_msg));   
         if(!Callbacks::is_callback_called && !is_custom_query){
             GetColumnsOnEmptyQuery(s_query);
         }
+
+        //TO_DO OPTIMIZATION. Replace sqlite3_exec to avoid recalling with sqlite3_prepare_v2
+        if(qResult == SQLITE_OK){
+            sqlite3_prepare_v2(
+                DataBaseManager::db,
+                s_query,
+                -1,
+                &stmt,
+                nullptr
+            );
+
+            row_aux = TList::CreateList();
+            for (int i = (ContentModule::content_info.num_columns)-1; i >= 0 ; i--) {
+                //Saves Column Metadata (Last In, First Out)
+                info_aux.str_info = (char*)malloc(sizeof(char) * (strlen(sqlite3_column_decltype(stmt, i))+1));
+                strcpy(info_aux.str_info, sqlite3_column_decltype(stmt, i));
+                TList::InsertList(
+                    &row_aux, 
+                    TList::ListType::STRING,
+                    info_aux
+                );
+
+                //DEBUG
+                // printf("%s\n", info_aux.str_info);
+            }
+            //Save metadata in table content_info
+            row_info_aux.list_info = row_aux;
+            TList::InsertList(
+                &ContentModule::content_info.values, 
+                TList::ListType::LIST,
+                row_info_aux
+            );
+
+        }
+        ContentModule::content_info.num_rows = TList::ListLength(ContentModule::content_info.values);
         return qResult;
     }
 

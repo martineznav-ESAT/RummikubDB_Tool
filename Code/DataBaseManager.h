@@ -8,6 +8,15 @@
 #include "./ScreenModules/ModulesManager.h"
 
 namespace DataBaseManager{
+    enum DB_ValueTypes{
+        INTEGER,
+        VARCHAR,
+        BOOLEAN,
+        CHAR,
+        DECIMAL,
+        TOTAL_DBVALUETYPES
+    };
+
     enum BaseSQL_Querys{
         GET_TABLES,
         SELECT_QUERY,

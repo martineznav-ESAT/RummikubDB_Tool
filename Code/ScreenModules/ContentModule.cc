@@ -13,38 +13,58 @@ namespace ContentModule{
     
     //Inicialization function
     void Init(){
-
+        content_info.is_loaded = false;
+        content_info.num_columns = 0;
+        content_info.num_rows = 0;
+        content_info.values = TList::CreateList();
     }
 
     //Draws the table of the current query content. No matter if it is a custom query or a table selection
     void DrawContentTable(){
 
-        if(content_info.is_loaded){
+        if(content_info.is_loaded && !TList::IsEmptyList(&(content_info.values))){
             ImGui::BeginTable("content", content_info.num_columns, 
                 ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable | 
                 ImGuiTableFlags_ScrollX | ImGuiTableFlags_ScrollY
             );
 
-            for (int r = content_info.num_rows; r >= 0; r--){
-                if(r == content_info.num_rows){
+            //DEBUG
+            // printf("\nSTART DRAW CONTENT TABLE\n");
+            // TList::PrintList(content_info.values);
+            for (int r = content_info.num_rows-1; r > 0; r--){
+                //DEBUG
+                // printf("PRINTING ROW %d\n",r);
+                // TList::PrintList(TList::GetIndexListNode(content_info.values, r)->info.list_info);
+
+                if(r == content_info.num_rows-1){
                     //Draws Header value
-                    if(!TList::IsEmptyList(&(content_info.column_names))){
-                        for (int c = 0; c < content_info.num_columns; c++){
-                            ImGui::TableSetupColumn(TList::GetIndexListNode(content_info.column_names, c)->info.str_info);
-                        }
-                        ImGui::TableHeadersRow();
+                    for (int c = 0; c < content_info.num_columns; c++){
+                        ImGui::TableSetupColumn(
+                            TList::GetIndexListNode(
+                                TList::GetIndexListNode(content_info.values, r)->info.list_info, //Row
+                                c                                                                //Col
+                            )->info.str_info
+                        );
                     }
+                    ImGui::TableHeadersRow();
                 }else{
                     //Draws Register value
-                    if(!TList::IsEmptyList(&(content_info.values))){
-                        ImGui::TableNextRow();
-                        for (int c = 0; c < content_info.num_columns; c++){
-                            ImGui::TableNextColumn();
-                            ImGui::Text("%s", TList::GetIndexListNode(content_info.values , (r*content_info.num_columns)+c)->info.str_info);
-                        }
+                    ImGui::TableNextRow();
+                    for (int c = 0; c < content_info.num_columns; c++){
+                        ImGui::TableNextColumn();
+                        ImGui::Text(
+                            "%s", 
+                            TList::GetIndexListNode(
+                                TList::GetIndexListNode(content_info.values, r)->info.list_info, //Row
+                                c                                                                //Col
+                            )->info.str_info
+                        );
                     }
                 }
             }
+            //DEBUG
+            // printf("END DRAW CONTENT TABLE\n");
+            
             
             ImGui::EndTable();
         }
@@ -63,7 +83,6 @@ namespace ContentModule{
 
     //Ensures everything is closed and freed from memory
     void EmptyMemory(){
-        TList::ClearList(&(content_info.column_names));
         TList::ClearList(&(content_info.values));
     }
 }
