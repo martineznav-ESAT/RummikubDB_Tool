@@ -35,6 +35,10 @@ namespace TList{
                 case ListType::STRING:
                     for(aux = list; aux != nullptr && strcmp(aux->info.str_info, info.str_info) != 0; aux = aux->next);
                 break;
+
+                case ListType::LIST:
+                    for(aux = list; aux != nullptr && aux->info.list_info != info.list_info; aux = aux->next);
+                break;
             }
         }
 
@@ -83,6 +87,10 @@ namespace TList{
 
             case ListType::STRING:
                 printf("%s | ",list->info.str_info);
+            break;
+
+            case ListType::LIST:
+                PrintList(list->info.list_info);
             break;
         }
     }
@@ -185,6 +193,9 @@ namespace TList{
             switch (delete_node->type){
                 case ListType::STRING:
                     free(delete_node->info.str_info);
+                break;
+                case ListType::LIST:
+                    ClearList(&(delete_node->info.list_info));
                 break;
             }
 

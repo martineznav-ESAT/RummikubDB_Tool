@@ -12,13 +12,17 @@ namespace TList{
     enum ListType{
         INT,
         CHAR,
-        STRING
+        STRING,
+        LIST
     };
+
+    struct ListNode;
 
     union ListInfo{
         int int_info;
         char char_info;
         char* str_info;
+        ListNode* list_info;
     };
 
     struct ListNode{
