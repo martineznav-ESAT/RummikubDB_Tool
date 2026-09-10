@@ -16,7 +16,9 @@ namespace DataBaseManager{
     //Constant values of all the base/default sql querys used in the tool
     char* kBaseSQL_Querys[] = {
         "SELECT name FROM sqlite_master WHERE type = 'table' and name != 'sqlite_sequence'",
-        "SELECT * from %s order by 1"
+        "SELECT * from %s order by 1",
+        "pragma table_info(%s)",
+        "delete from %s where %s = %s"
     };
 
     sqlite3 *db;
@@ -58,27 +60,48 @@ namespace DataBaseManager{
     }
 
     //Returns the SQL String corresponding to the parameter enum value 
-    char* GetBaseQuery(BaseSQL_Querys query, char* tablename){
+    char* GetBaseQuery(BaseSQL_Querys query, char* tablename, char* field, char* value){
         char* r_query = nullptr; 
+        int query_length;
 
         switch (query){
-        case BaseSQL_Querys::SELECT_QUERY:
+            case BaseSQL_Querys::SELECT_QUERY:
+                query_length = sizeof(char)*(1 + strlen(tablename) + strlen(kBaseSQL_Querys[(int)query]));
+                
+                r_query = (char*) malloc(query_length);
+
+                //Builds the select query with the tablename given
+                snprintf(
+                    (char*)r_query,
+                    query_length,
+                    kBaseSQL_Querys[(int)query],
+                    tablename
+                );
+
+                break;
+
+            case BaseSQL_Querys::BASIC_DELETE:
+                // printf("%s | %s | %s \n",tablename,field,value);
+
+                query_length = sizeof(char)*(1 + strlen(tablename) + strlen(field) + strlen(value) + strlen(kBaseSQL_Querys[(int)query]));
+                
+                r_query = (char*) malloc(query_length);
+
+                //Builds the select query with the tablename given
+                snprintf(
+                    (char*)r_query,
+                    query_length,
+                    kBaseSQL_Querys[(int)query],
+                    tablename,
+                    field,
+                    value
+                );
+
+                break;
             
-            r_query = (char*) malloc(sizeof(char)*(1 + strlen(tablename) + strlen(kBaseSQL_Querys[(int)query])));
-
-            //Builds the select query with the tablename given
-            snprintf(
-                (char*)r_query,
-                1 + strlen(kBaseSQL_Querys[(int)query]) + strlen(tablename),
-                kBaseSQL_Querys[(int)query],
-                tablename
-            );
-
-            break;
-        
-        default:
-            r_query = kBaseSQL_Querys[(int)query];
-            break;
+            default:
+                r_query = kBaseSQL_Querys[(int)query];
+                break;
         }
 
         //DEBUG
@@ -86,120 +109,94 @@ namespace DataBaseManager{
         return r_query;
     }
 
-    //Saves the columns of the given query in case it returns no values
-    void GetColumnsOnEmptyQuery(char* st_query){
+    
+    //Executes the given SELECT query and returns the result of the query execution
+    int ExecuteSelectQuery(char* s_query, bool is_custom_query){
+        int qResult = 1;
+        sqlite3_stmt* stmt;
         TList::ListInfo info_aux;
         TList::ListNode* row_aux;
         TList::ListInfo row_info_aux;
 
-        sqlite3_stmt* stmt;
 
-        sqlite3_prepare_v2(
+        qResult = sqlite3_prepare_v2(
             DataBaseManager::db,
-            st_query,
+            s_query,
             -1,
             &stmt,
             nullptr
         );
 
-        ContentModule::content_info.is_loaded = true;
-        ContentModule::content_info.num_columns = sqlite3_column_count(stmt);
+        printf("ExecuteSelectQuery -> sqlite3_prepare_v2 -> %d\n",qResult);
 
-        TList::ClearList(&(ContentModule::content_info.values));
+        if(qResult == SQLITE_OK){
+            ContentModule::content_info.num_columns = sqlite3_column_count(stmt);
+            TList::ClearList(&(ContentModule::content_info.values));
+            ContentModule::content_info.is_loaded = false;
+            if(!ContentModule::content_info.is_loaded){
+                row_aux = TList::CreateList();
 
-        //DEBUG
-        // printf("START DATA GATHERING\n");
-        // printf("COL NAMES\n");
-        row_aux = TList::CreateList();
-        for (int i = (ContentModule::content_info.num_columns)-1; i >= 0 ; i--) {
+                printf("ExecuteSelectQuery -> columns -> %d\n",sqlite3_column_count(stmt));
+                for (int i = ContentModule::content_info.num_columns-1; i >= 0; i--){
+                    strcpy(info_aux.coldata_info.name, sqlite3_column_name(stmt,i));
+                    strcpy(info_aux.coldata_info.type, sqlite3_column_decltype(stmt,i));
 
-            //Saves Column Names (Last index will be the column names)
-            info_aux.str_info = (char*)malloc(sizeof(char) * (strlen(sqlite3_column_name(stmt, i))+1));
-            strcpy(info_aux.str_info, sqlite3_column_name(stmt, i));
-            TList::InsertList(
-                &row_aux, 
-                TList::ListType::STRING,
-                info_aux
-            );
+                    TList::InsertList(
+                        &row_aux, 
+                        TList::ListType::COLUMNDATA,
+                        info_aux
+                    );
+                }
 
-            //DEBUG
-            // printf("%s\n", info_aux.str_info);
+                //Save column values row
+                row_info_aux.list_info = row_aux;
+                TList::InsertList(
+                    &(ContentModule::content_info.values), 
+                    TList::ListType::LIST,
+                    row_info_aux
+                );
+                ContentModule::content_info.is_loaded = true;
+            }
+
+            while (sqlite3_step(stmt) == SQLITE_ROW) {
+                row_aux = TList::CreateList();
+
+
+                for (int i = ContentModule::content_info.num_columns-1; i >= 0 ; i--){
+                    //Row Data
+                    if(sqlite3_column_text(stmt,i) == nullptr){
+                        info_aux.str_info  = (char*) malloc(sizeof(char) * (strlen("NULL")+1));
+                        strcpy(info_aux.str_info , "NULL");
+                    }else{
+                        info_aux.str_info = (char*) malloc(sizeof(char) * (strlen((char*)sqlite3_column_text(stmt,i))+1));
+                        strcpy(info_aux.str_info, (char*)sqlite3_column_text(stmt,i));
+                    }
+                    
+                    //Save N register in table given as parameter
+                    TList::InsertList(
+                        &row_aux, 
+                        TList::ListType::STRING,
+                        info_aux
+                    );
+                }
+
+                //Save register values row
+                row_info_aux.list_info = row_aux;
+                TList::InsertList(
+                    &(ContentModule::content_info.values), 
+                    TList::ListType::LIST,
+                    row_info_aux
+                );
+            }
+
+            ContentModule::content_info.num_rows = TList::ListLength(ContentModule::content_info.values);
         }
-        //Save colnames in table content_info
-        row_info_aux.list_info = row_aux;
-        TList::InsertList(
-            &ContentModule::content_info.values, 
-            TList::ListType::LIST,
-            row_info_aux
-        );
 
-        //DEBUG
-        // TList::PrintList(ContentModule::content_info.values);
-        // TList::PrintList(
-        //     TList::GetIndexListNode(
-        //         ContentModule::content_info.values,
-        //         ContentModule::content_info.num_rows-1 //Index N-1 -> Column names
-        //     )->info.list_info
-        // );
-
-        // TList::PrintList(
-        //     TList::GetIndexListNode(
-        //         ContentModule::content_info.values,
-        //         0                                      //Index 0   -> Metadata/Column Types
-        //     )->info.list_info
-        // );
 
         sqlite3_finalize(stmt);
-    }
 
-    //Executes the given SELECT query and returns the result of the query execution
-    int ExecuteSelectQuery(char* s_query, bool is_custom_query){
-        int qResult = 1;
-        Callbacks::is_callback_called = false;
-        sqlite3_stmt* stmt;
-        TList::ListInfo info_aux;
-        TList::ListNode* row_aux;
-        TList::ListInfo row_info_aux;
+        // TList::PrintList(ContentModule::content_info.values);
 
-        qResult = sqlite3_exec(DataBaseManager::db, s_query, Callbacks::CB_SelectQuery, &(ContentModule::content_info), &(DataBaseManager::notif_pop_up.popup_msg));   
-        if(!Callbacks::is_callback_called && !is_custom_query){
-            GetColumnsOnEmptyQuery(s_query);
-        }
-
-        //TO_DO OPTIMIZATION. Replace sqlite3_exec to avoid recalling with sqlite3_prepare_v2
-        if(qResult == SQLITE_OK){
-            sqlite3_prepare_v2(
-                DataBaseManager::db,
-                s_query,
-                -1,
-                &stmt,
-                nullptr
-            );
-
-            row_aux = TList::CreateList();
-            for (int i = (ContentModule::content_info.num_columns)-1; i >= 0 ; i--) {
-                //Saves Column Metadata (Last In, First Out)
-                info_aux.str_info = (char*)malloc(sizeof(char) * (strlen(sqlite3_column_decltype(stmt, i))+1));
-                strcpy(info_aux.str_info, sqlite3_column_decltype(stmt, i));
-                TList::InsertList(
-                    &row_aux, 
-                    TList::ListType::STRING,
-                    info_aux
-                );
-
-                //DEBUG
-                // printf("%s\n", info_aux.str_info);
-            }
-            //Save metadata in table content_info
-            row_info_aux.list_info = row_aux;
-            TList::InsertList(
-                &ContentModule::content_info.values, 
-                TList::ListType::LIST,
-                row_info_aux
-            );
-
-        }
-        ContentModule::content_info.num_rows = TList::ListLength(ContentModule::content_info.values);
         return qResult;
     }
 
@@ -268,13 +265,14 @@ namespace DataBaseManager{
         TList::ListInfo aux_info;
         aux_info.str_info = nullptr;
 
+
         Utils::GetStringWordAtPosition(&aux_info.str_info, d_query, 2);
         if(aux_info.str_info){
             strupr(aux_info.str_info);
         }
 
         //DEBUG
-        printf("TABLE NAME: %s\n", aux_info.str_info);
+        // printf("TABLE NAME: %s\n", aux_info.str_info);
         
 
         if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){

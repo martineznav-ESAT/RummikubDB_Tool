@@ -36,6 +36,10 @@ namespace TList{
                     for(aux = list; aux != nullptr && strcmp(aux->info.str_info, info.str_info) != 0; aux = aux->next);
                 break;
 
+                case ListType::COLUMNDATA:
+                    for(aux = list; aux != nullptr && strcmp(aux->info.coldata_info.name, info.coldata_info.name) != 0 ; aux = aux->next);
+                break;
+
                 case ListType::LIST:
                     for(aux = list; aux != nullptr && aux->info.list_info != info.list_info; aux = aux->next);
                 break;
@@ -87,6 +91,12 @@ namespace TList{
 
             case ListType::STRING:
                 printf("%s | ",list->info.str_info);
+            break;
+
+            case ListType::COLUMNDATA:
+                printf("COLUMN DATA | ");
+                printf("Name - %s | ",list->info.coldata_info.name);
+                printf("Type - %s | ",list->info.coldata_info.type);
             break;
 
             case ListType::LIST:
@@ -205,12 +215,12 @@ namespace TList{
     }
 
     //Deletes a node with the given value
-    // void DeleteElement(ListNode **list, ListInfo info){
-    //     // printf("DeleteFromList\n");
+    void DeleteElement(ListNode **list, ListInfo info){
+        // printf("DeleteFromList\n");
         
-    //     ListNode *aux = FindInList(*list, info);
-    //     DeleteElement(list, aux);
-    // }
+        ListNode *aux = FindInList(*list, info);
+        DeleteElement(list, aux);
+    }
 
     //Cleans a list completely deleting all the nodes inside it 
     void ClearList(ListNode **list){

@@ -8,18 +8,12 @@
 #include "./ScreenModules/ModulesManager.h"
 
 namespace DataBaseManager{
-    enum DB_ValueTypes{
-        INTEGER,
-        VARCHAR,
-        BOOLEAN,
-        CHAR,
-        DECIMAL,
-        TOTAL_DBVALUETYPES
-    };
 
     enum BaseSQL_Querys{
         GET_TABLES,
         SELECT_QUERY,
+        PRAGMA_QUERY,
+        BASIC_DELETE,
         TOTAL_QUERYS
     };
 
@@ -52,7 +46,7 @@ namespace DataBaseManager{
     int Init();
 
     //Returns the SQL String corresponding to the parameter enum value 
-    char* GetBaseQuery(BaseSQL_Querys query, char* tablename = nullptr);
+    char* GetBaseQuery(BaseSQL_Querys query, char* tablename = nullptr, char* field = nullptr, char* value = nullptr);
 
     //Executes a select query given 
     int ExecuteSelectQuery(char* s_query, bool is_custom_query = false);

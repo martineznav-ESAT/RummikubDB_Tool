@@ -8,20 +8,37 @@
 #ifndef TList_H
 #define TList_H
 
+
 namespace TList{
     enum ListType{
         INT,
         CHAR,
         STRING,
+        COLUMNDATA,
         LIST
     };
 
+    enum DB_ValueTypes{
+        DB_INTEGER,
+        DB_VARCHAR,
+        DB_BOOLEAN,
+        DB_CHAR,
+        DB_DECIMAL,
+        TOTAL_DBVALUETYPES
+    };
+
     struct ListNode;
+
+    struct ColumnData{
+        char name[80];
+        char type[50];
+    };
 
     union ListInfo{
         int int_info;
         char char_info;
         char* str_info;
+        ColumnData coldata_info;
         ListNode* list_info;
     };
 
