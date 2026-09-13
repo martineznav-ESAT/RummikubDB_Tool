@@ -110,8 +110,11 @@ namespace ContentModule{
                 col                                                                
             );
 
+        char cell_label[100];
+        sprintf(cell_label, "##cell_%d_%d", row, col);
+
         ImGui::InputText(
-            "##"+row+col,
+            cell_label,
             cell->info.celldata_info.update_value,
             GetBuffSizeByType(col_metadata->info.coldata_info.type),
             GetInputFlagsByType(col_metadata->info.coldata_info.type)

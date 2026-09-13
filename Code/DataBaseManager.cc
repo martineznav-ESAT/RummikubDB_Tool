@@ -131,6 +131,8 @@ namespace DataBaseManager{
 
         if(qResult == SQLITE_OK){
             ContentModule::content_info.num_columns = sqlite3_column_count(stmt);
+            ContentModule::content_info.update_row = NOT_PROCESSING;
+            ContentModule::content_info.insert_row = NOT_PROCESSING;
             TList::ClearList(&(ContentModule::content_info.values));
             ContentModule::content_info.is_loaded = false;
             if(!ContentModule::content_info.is_loaded){

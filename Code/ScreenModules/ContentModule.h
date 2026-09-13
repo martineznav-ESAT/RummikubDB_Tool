@@ -6,6 +6,8 @@
 #include "../../Libs/CustomLibs/TList.h"
 
 namespace ContentModule{
+    #define NOT_PROCESSING -1
+    
     struct ContentInfo{
         bool is_loaded = false;
         int num_columns, num_rows;
