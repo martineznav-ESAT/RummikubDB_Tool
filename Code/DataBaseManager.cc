@@ -127,7 +127,7 @@ namespace DataBaseManager{
             nullptr
         );
 
-        printf("ExecuteSelectQuery -> sqlite3_prepare_v2 -> %d\n",qResult);
+        // printf("ExecuteSelectQuery -> sqlite3_prepare_v2 -> %d\n",qResult);
 
         if(qResult == SQLITE_OK){
             ContentModule::content_info.num_columns = sqlite3_column_count(stmt);
@@ -136,7 +136,7 @@ namespace DataBaseManager{
             if(!ContentModule::content_info.is_loaded){
                 row_aux = TList::CreateList();
 
-                printf("ExecuteSelectQuery -> columns -> %d\n",sqlite3_column_count(stmt));
+                // printf("ExecuteSelectQuery -> columns -> %d\n",sqlite3_column_count(stmt));
                 for (int i = ContentModule::content_info.num_columns-1; i >= 0; i--){
                     strcpy(info_aux.coldata_info.name, sqlite3_column_name(stmt,i));
                     strcpy(info_aux.coldata_info.type, sqlite3_column_decltype(stmt,i));
@@ -165,17 +165,26 @@ namespace DataBaseManager{
                 for (int i = ContentModule::content_info.num_columns-1; i >= 0 ; i--){
                     //Row Data
                     if(sqlite3_column_text(stmt,i) == nullptr){
-                        info_aux.str_info  = (char*) malloc(sizeof(char) * (strlen("NULL")+1));
-                        strcpy(info_aux.str_info , "NULL");
+                        info_aux.celldata_info.db_value = (char*) malloc(sizeof(char) * (strlen("\0")+1));
+                        info_aux.celldata_info.update_value = (char*) malloc(sizeof(char) * (strlen("\0")+1));
+
+                        strcpy(info_aux.celldata_info.db_value , "\0");
+                        strcpy(info_aux.celldata_info.update_value , "\0");
                     }else{
-                        info_aux.str_info = (char*) malloc(sizeof(char) * (strlen((char*)sqlite3_column_text(stmt,i))+1));
-                        strcpy(info_aux.str_info, (char*)sqlite3_column_text(stmt,i));
+                        info_aux.celldata_info.db_value = (char*) malloc(sizeof(char) * (strlen((char*)sqlite3_column_text(stmt,i))+1));
+                        info_aux.celldata_info.update_value = (char*) malloc(sizeof(char) * (strlen((char*)sqlite3_column_text(stmt,i))+1));
+                        
+                        strcpy(info_aux.celldata_info.db_value , (char*)sqlite3_column_text(stmt,i));
+                        strcpy(info_aux.celldata_info.update_value , (char*)sqlite3_column_text(stmt,i));
                     }
+
+                    info_aux.celldata_info.col = i;
+                    info_aux.celldata_info.row = TList::ListLength(ContentModule::content_info.values);
                     
                     //Save N register in table given as parameter
                     TList::InsertList(
                         &row_aux, 
-                        TList::ListType::STRING,
+                        TList::ListType::CELLDATA,
                         info_aux
                     );
                 }

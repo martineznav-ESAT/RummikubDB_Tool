@@ -13,7 +13,8 @@ namespace ContentModule{
         //where index 0 should correspond to the metadata/column types
         //the last one should be the column names 
         //and the registers exsist in between 
-        TList::ListNode *values; 
+        TList::ListNode *values;
+        int insert_row = -1, update_row = -1; 
     };
 
     extern ContentInfo content_info;

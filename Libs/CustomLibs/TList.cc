@@ -40,6 +40,10 @@ namespace TList{
                     for(aux = list; aux != nullptr && strcmp(aux->info.coldata_info.name, info.coldata_info.name) != 0 ; aux = aux->next);
                 break;
 
+                case ListType::CELLDATA:
+                    for(aux = list; aux != nullptr && (aux->info.celldata_info.row == info.celldata_info.row && aux->info.celldata_info.col == info.celldata_info.col) ; aux = aux->next);
+                break;
+
                 case ListType::LIST:
                     for(aux = list; aux != nullptr && aux->info.list_info != info.list_info; aux = aux->next);
                 break;
@@ -90,13 +94,22 @@ namespace TList{
             break;
 
             case ListType::STRING:
+                printf("PRINTING LIST STRING -> ");
                 printf("%s | ",list->info.str_info);
             break;
 
             case ListType::COLUMNDATA:
                 printf("COLUMN DATA | ");
                 printf("Name - %s | ",list->info.coldata_info.name);
-                printf("Type - %s | ",list->info.coldata_info.type);
+                printf("Type - %s \n",list->info.coldata_info.type);
+            break;
+
+            case ListType::CELLDATA:
+                printf("CELL DATA | ");
+                printf("Row - %d | ",list->info.celldata_info.row);
+                printf("Col - %d | ",list->info.celldata_info.col);
+                printf("DB Value - %s | ",list->info.celldata_info.db_value);
+                printf("Update Value - %s \n",list->info.celldata_info.update_value);
             break;
 
             case ListType::LIST:
@@ -202,7 +215,17 @@ namespace TList{
 
             switch (delete_node->type){
                 case ListType::STRING:
-                    free(delete_node->info.str_info);
+                    if(delete_node->info.str_info != nullptr){
+                        free(delete_node->info.str_info);
+                    }
+                break;
+                case ListType::CELLDATA:
+                    if(delete_node->info.celldata_info.db_value != nullptr){
+                        free(delete_node->info.celldata_info.db_value);
+                    }
+                    if(delete_node->info.celldata_info.update_value != nullptr){
+                        free(delete_node->info.celldata_info.update_value);
+                    }
                 break;
                 case ListType::LIST:
                     ClearList(&(delete_node->info.list_info));

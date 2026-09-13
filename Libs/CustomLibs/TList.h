@@ -15,16 +15,8 @@ namespace TList{
         CHAR,
         STRING,
         COLUMNDATA,
+        CELLDATA,
         LIST
-    };
-
-    enum DB_ValueTypes{
-        DB_INTEGER,
-        DB_VARCHAR,
-        DB_BOOLEAN,
-        DB_CHAR,
-        DB_DECIMAL,
-        TOTAL_DBVALUETYPES
     };
 
     struct ListNode;
@@ -34,11 +26,18 @@ namespace TList{
         char type[50];
     };
 
+    struct CellData{
+        int row, col;
+        char* db_value;
+        char* update_value;
+    };
+
     union ListInfo{
         int int_info;
         char char_info;
         char* str_info;
         ColumnData coldata_info;
+        CellData celldata_info;
         ListNode* list_info;
     };
 
