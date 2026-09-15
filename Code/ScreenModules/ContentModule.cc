@@ -1,6 +1,7 @@
 // @author Jonathan Martínez Navarro
 
 #include <esat_extra/imgui.h>
+#include <stdlib.h>
 
 #include "./ContentModule.h"
 #include "../DataBaseManager.h"
@@ -33,9 +34,10 @@ namespace ContentModule{
 
         for (int i = content_info.num_columns-1; i >= 0 ; i--){
             //Row Data
-            info_aux.celldata_info.db_value = (char*) malloc(sizeof(char) * (strlen("\0")+1));
-            info_aux.celldata_info.update_value = (char*) malloc(sizeof(char) * (strlen("\0")+1));
+            info_aux.celldata_info.db_value = (char*) malloc(DataBaseManager::GetTableColData(i).buff_size);
+            info_aux.celldata_info.update_value = (char*) malloc(DataBaseManager::GetTableColData(i).buff_size);
 
+            //Load Row Data
             strcpy(info_aux.celldata_info.db_value , "\0");
             strcpy(info_aux.celldata_info.update_value , "\0");
 
@@ -77,25 +79,98 @@ namespace ContentModule{
         );
 
         //DEBUG
-        // printf(
-        //     "DELETE QUERY:\n %s\n",
-        //     d_query
-        // );
+        printf(
+            "DELETE QUERY:\n %s\n",
+            d_query
+        );
         
 
-        //DELETE REGISTER VALUE ASSOCIATED WITH THE BUTTON ROW AND UPDATE THE TABLE SELECT
+        //DELETE REGISTER VALUE ASSOCIATED WITH THE BUTTON ROW AND UPDATE THE SELECTED TABLE 
         DataBaseManager::ExecuteDeleteQuery(d_query);
-
         TablesModule::CallSelectedTableQuery();
+
+        free(d_query);
     }
 
-    int GetBuffSizeByType(char* type){
-        return sizeof(char)*100;
-    }
+    void OnInsertButton(int r){
+        char* i_query = nullptr;
+        char cols_s[512] = "\0";
+        char values_s[512] = "\0";
+        char aux_str[254] = "\0";
+        TList::ListNode* row_node = TList::GetIndexListNode(content_info.values, r)->info.list_info;
+        TList::ListNode* cell_aux = nullptr;
+        char* aux_type = nullptr;
 
-    int GetInputFlagsByType(char* type){
-        //TO_DO
-        return 0;
+        //DEBUG
+        printf("OnInsertButton ROW %d\n",r);
+        TList::PrintList(row_node);
+
+        for (int i = ContentModule::content_info.num_columns-1; i >= 0; i--){
+            cell_aux = TList::GetIndexListNode(row_node, i);
+
+            //Checks if there's a value available to insert for the current cell
+            if(
+                cell_aux != nullptr && 
+                cell_aux->info.celldata_info.update_value != nullptr && 
+                strcmp(cell_aux->info.celldata_info.update_value, "\0") != 0
+            ){
+                if(strcmp(cols_s, "\0") == 0){
+                    //Save col name
+                    strcpy(cols_s, DataBaseManager::GetTableColData(i).name);
+
+                    //Save value based on type
+                    Utils::GetStringWordAtPosition(&aux_type, DataBaseManager::GetTableColData(i).type, 0);
+                    if(strcmp(aux_type, "VARCHAR") == 0 || strcmp(aux_type, "CHAR") == 0){
+                        sprintf(aux_str, "'%s'", cell_aux->info.celldata_info.update_value);
+                        strcpy(values_s, aux_str);
+                    }else{
+                        strcpy(values_s, cell_aux->info.celldata_info.update_value);
+                    }
+                }else{
+                    //Concat col name
+                    sprintf(aux_str, ", %s", DataBaseManager::GetTableColData(i).name);
+                    strcat(cols_s, aux_str);
+
+                    //Concat value based on type
+                    Utils::GetStringWordAtPosition(&aux_type, DataBaseManager::GetTableColData(i).type, 0);
+                    if(strcmp(aux_type, "VARCHAR") == 0 || strcmp(aux_type, "CHAR") == 0){
+                        sprintf(aux_str, ", '%s'", cell_aux->info.celldata_info.update_value);
+                        strcat(values_s, aux_str);
+                    }else{
+                        sprintf(aux_str, ", %s", cell_aux->info.celldata_info.update_value);
+                        strcat(values_s, cell_aux->info.celldata_info.update_value);
+                    }
+                }
+            }
+        }
+
+        //DEBUG
+        printf("COLS TO INSERT INTO -> %s\n",cols_s);
+        printf("VALUES TO INSERT -> %s\n",values_s);
+        
+
+        i_query = DataBaseManager::GetBaseQuery(
+            DataBaseManager::BaseSQL_Querys::BASIC_INSERT,
+            TList::GetIndexListNode(TablesModule::db_tables, TablesModule::selectedTable)->info.str_info,
+            nullptr, 
+            cols_s,
+            values_s
+        );
+
+        //DEBUG
+        printf(
+            "INSERT QUERY:\n %s\n",
+            i_query
+        );
+        
+
+        //INSERTS REGISTER VALUE OF THE ACTUAL PROCESSING INSERT ROW AND UPDATE THE SELECTED TABLE 
+        DataBaseManager::ExecuteInsertQuery(i_query);
+        TablesModule::CallSelectedTableQuery();
+
+        if(i_query != nullptr){
+            free(i_query);
+        }
     }
 
     void DrawCellInputValue(int row, int col){
@@ -104,20 +179,18 @@ namespace ContentModule{
                 TList::GetIndexListNode(content_info.values, row)->info.list_info, 
                 col                                                                
             );
-        TList::ListNode* col_metadata = 
-            TList::GetIndexListNode(
-                TList::GetIndexListNode(content_info.values, content_info.num_rows-1)->info.list_info, 
-                col                                                                
-            );
+        TList::ColumnData col_metadata = DataBaseManager::GetTableColData(col);
 
         char cell_label[100];
         sprintf(cell_label, "##cell_%d_%d", row, col);
 
+        ImGui::SetNextItemWidth(-FLT_MIN);
+        
         ImGui::InputText(
             cell_label,
             cell->info.celldata_info.update_value,
-            GetBuffSizeByType(col_metadata->info.coldata_info.type),
-            GetInputFlagsByType(col_metadata->info.coldata_info.type)
+            col_metadata.buff_size,
+            DataBaseManager::GetInputFlagsByType(col_metadata.type)
         );
     }
 
@@ -137,6 +210,8 @@ namespace ContentModule{
                 ImGui::Button("ADDING ROW...", ImVec2(-1,0));
                 ImGui::PopStyleColor(3);
             }
+
+            ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 0.0f));
 
             ImGui::BeginTable(
                 "content", content_info.num_columns+1, 
@@ -166,24 +241,19 @@ namespace ContentModule{
                             )->info.coldata_info.name
                         );
                     }
-                    ImGui::TableSetupColumn("");
+                    ImGui::TableSetupColumn(
+                        "",
+                        ImGuiTableColumnFlags_WidthFixed |
+                        ImGuiTableColumnFlags_NoResize,
+                        75.f
+                    );
                     ImGui::TableHeadersRow();
                 }else{
                     //Draws Register value
                     ImGui::TableNextRow();
                     for (int c = 0; c < content_info.num_columns; c++){
                         ImGui::TableNextColumn();
-                        // ImGui::Text(
-                        //     "%s", 
-                        //     TList::GetIndexListNode(
-                        //         TList::GetIndexListNode(content_info.values, r)->info.list_info, //Row
-                        //         c                                                                //Col
-                        //     )->info.celldata_info.update_value
-                        // );
-
-                        //TO_DO
                         DrawCellInputValue(r,c);
-                        
                     }
                     ImGui::TableNextColumn();
 
@@ -191,10 +261,20 @@ namespace ContentModule{
                         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(180, 60, 60, 255));
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(200, 70, 70, 255));
                         ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(160, 50, 50, 255));
-                        if(ImGui::Button("X", ImVec2(-1,0))){
+                        if(ImGui::Button("X", ImVec2(-FLT_MIN,0))){
                             OnDeleteButton(r);
                         }
                         ImGui::PopStyleColor(3);
+                    }else{
+                        if(r == content_info.insert_row){
+                            ImGui::PushStyleColor(ImGuiCol_Button,        IM_COL32(80, 180, 100, 255));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 200, 120, 255));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  IM_COL32(60, 160, 80, 255));
+                            if(ImGui::Button("+", ImVec2(-FLT_MIN,0))){
+                                OnInsertButton(r);
+                            }
+                            ImGui::PopStyleColor(3);
+                        }
                     }
                     
                 }
@@ -205,6 +285,8 @@ namespace ContentModule{
             
             
             ImGui::EndTable();
+
+            ImGui::PopStyleVar();
         }
     }
 

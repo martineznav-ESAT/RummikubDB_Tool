@@ -24,10 +24,16 @@ namespace TList{
     struct ColumnData{
         char name[80];
         char type[50];
+        int buff_size;
     };
 
     struct CellData{
-        int row, col;
+        //The row value should be inverted. Meaning that if row value is 0, its actual index in the list will be ListLength - 1
+        //In other words, row_index = (ListLength - 1) - CellData.row
+        //This happens because every time a value is inserted in the list, it will always begin at index 0 but change as more values are getting inserted
+        //With this simple equation, we can store the current length of the list before inserting the new value, storing the perfect reference for us tu calculate it later if needed
+        int row; 
+        int col; 
         char* db_value;
         char* update_value;
     };
@@ -74,6 +80,13 @@ namespace TList{
 
     //Extracts a node from the list and returns it detached
     ListNode* ExtractFromList(ListNode **list_element);
+
+    //Deletes the given node from the list
+    void DeleteElement(ListNode **list, ListNode *delete_node);
+
+    //Deletes a node at the given index
+    void DeleteElement(ListNode **list, int index);
+
 
     //Deletes a node with the given value
     // void DeleteElement(ListNode **list, ListInfo info);

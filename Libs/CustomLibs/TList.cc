@@ -245,6 +245,18 @@ namespace TList{
         DeleteElement(list, aux);
     }
 
+
+    //Deletes a node at the given index
+    void DeleteElement(ListNode **list, int index){
+        TList::DeleteElement(
+            list, 
+            TList::GetIndexListNode(
+                *(list), 
+                index
+            )
+        );
+    }
+
     //Cleans a list completely deleting all the nodes inside it 
     void ClearList(ListNode **list){
         // printf("CLEAR LIST\n");

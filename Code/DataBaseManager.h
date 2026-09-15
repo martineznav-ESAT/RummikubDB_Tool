@@ -14,6 +14,7 @@ namespace DataBaseManager{
         SELECT_QUERY,
         PRAGMA_QUERY,
         BASIC_DELETE,
+        BASIC_INSERT,
         TOTAL_QUERYS
     };
 
@@ -24,6 +25,13 @@ namespace DataBaseManager{
         DELETE,
         ERROR,
         TOTAL_QUERYTYPES
+    };
+
+    enum CellType{
+        INTEGER,
+        DECIMAL,
+        VARCHAR,
+        TOTAL_CELLTYPES
     };
 
     enum PopUpType{
@@ -46,7 +54,23 @@ namespace DataBaseManager{
     int Init();
 
     //Returns the SQL String corresponding to the parameter enum value 
-    char* GetBaseQuery(BaseSQL_Querys query, char* tablename = nullptr, char* field = nullptr, char* value = nullptr);
+    // query -> Query type selector
+    // tablename -> Just the name of the table being attacked | Format -> "tablename"
+    // where_clause -> When doing an update or delete, the whole SQL WHERE clause has to be introduced. Default value is nullptr. | Format -> "WHERE --conditions-- "  
+    // insert_cols  -> When doing an insert, the content of the values() part of the query. Default value is nullptr. | Format -> "col1, col2, col3, ..., colN"  
+    // insert_values -> When doing an insert, the content of the actual values () to insert. Default value is nullptr. | Format -> "'value1', 'value2', 'value3', ..., 'valueN'"  
+    char* GetBaseQuery(BaseSQL_Querys query, char* tablename = nullptr, char* where_clause = nullptr, char* insert_cols = nullptr, char* insert_values = nullptr);
+
+    //Returns an integer representing the amount of allocated memory needed based of a string that represents an SQLITE Type
+    int GetBuffSizeByType(char* type);
+
+    //Returns the flags of an InputText corresponding to the given string Type
+    int GetInputFlagsByType(char* type);
+
+    //Returns the column data of the column at the index given as parameter
+    //The header row of the table with the column metadata has to be created 
+    //before using this function for it to work
+    TList::ColumnData GetTableColData(int col);
 
     //Executes a select query given 
     int ExecuteSelectQuery(char* s_query, bool is_custom_query = false);

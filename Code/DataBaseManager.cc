@@ -18,7 +18,8 @@ namespace DataBaseManager{
         "SELECT name FROM sqlite_master WHERE type = 'table' and name != 'sqlite_sequence'",
         "SELECT * from %s order by 1",
         "pragma table_info(%s)",
-        "delete from %s where %s = %s"
+        "delete from %s where %s", //TO_DO
+        "insert into %s (%s) values(%s)"
     };
 
     sqlite3 *db;
@@ -60,7 +61,12 @@ namespace DataBaseManager{
     }
 
     //Returns the SQL String corresponding to the parameter enum value 
-    char* GetBaseQuery(BaseSQL_Querys query, char* tablename, char* field, char* value){
+    // query -> Query type selector
+    // tablename -> Just the name of the table being attacked | Format -> "tablename"
+    // where_clause -> When doing an update or delete, the whole SQL WHERE clause has to be introduced. Default value is nullptr. | Format -> "WHERE --conditions-- "  
+    // insert_cols  -> When doing an insert, the content of the () corresponding to the column names of the attacked table. Default value is nullptr. | Format -> "col1, col2, col3, ..., colN"  
+    // insert_values -> When doing an insert, the content of the actual values() to insert. Default value is nullptr. | Format -> "'value1', 'value2', 'value3', ..., 'valueN'"  
+    char* GetBaseQuery(BaseSQL_Querys query, char* tablename, char* where_clause, char* insert_cols, char* insert_values){
         char* r_query = nullptr; 
         int query_length;
 
@@ -78,12 +84,12 @@ namespace DataBaseManager{
                     tablename
                 );
 
-                break;
+            break;
 
             case BaseSQL_Querys::BASIC_DELETE:
                 // printf("%s | %s | %s \n",tablename,field,value);
 
-                query_length = sizeof(char)*(1 + strlen(tablename) + strlen(field) + strlen(value) + strlen(kBaseSQL_Querys[(int)query]));
+                query_length = sizeof(char)*(1 + strlen(tablename) + strlen(where_clause) + strlen(kBaseSQL_Querys[(int)query]));
                 
                 r_query = (char*) malloc(query_length);
 
@@ -93,11 +99,29 @@ namespace DataBaseManager{
                     query_length,
                     kBaseSQL_Querys[(int)query],
                     tablename,
-                    field,
-                    value
+                    where_clause
                 );
 
-                break;
+            break;
+
+            case BaseSQL_Querys::BASIC_INSERT:
+                // printf("%s | %s | %s \n",tablename,field,value);
+
+                query_length = sizeof(char)*(1 + strlen(tablename) + strlen(insert_cols) + strlen(insert_values) + strlen(kBaseSQL_Querys[(int)query]));
+                
+                r_query = (char*) malloc(query_length);
+
+                //Builds the select query with the tablename given
+                snprintf(
+                    (char*)r_query,
+                    query_length,
+                    kBaseSQL_Querys[(int)query],
+                    tablename,
+                    insert_cols,
+                    insert_values
+                );
+
+            break;
             
             default:
                 r_query = kBaseSQL_Querys[(int)query];
@@ -109,6 +133,75 @@ namespace DataBaseManager{
         return r_query;
     }
 
+
+
+    //Returns an integer representing the amount of allocated memory needed based of a string that represents an SQLITE Type
+    int GetBuffSizeByType(char* type){
+        int buff_size = sizeof(char);
+        char* varchar_size = (char*)malloc(sizeof(char)*50);
+        char* aux_type = nullptr;
+
+        if(type == nullptr){
+            //Default value to prevent crash in case the given type is nullptr
+            buff_size *= 101;
+        }else{
+            aux_type = (char*)malloc(sizeof(char)*(strlen(type)+1));
+
+            strcpy(aux_type, type);
+            aux_type = strupr(aux_type);
+
+            Utils::GetStringWordAtPosition(&varchar_size, type, 1);
+            Utils::GetStringWordAtPosition(&aux_type, type, 0);
+
+            //TO_DO REPLACE WITH CUSTOM FUNCTION AND SWITCH
+            // If - else structure simulating a switch for strings 
+            if (strcmp(aux_type, "INTEGER") == 0){
+                //INTEGER max digits 11 when negative. Extra for string end value '\0'
+                buff_size *= 12; 
+
+            } else if (strcmp(aux_type, "DECIMAL") == 0) {
+                //DECIMAL Not real max digits, but a big enough value for this app since there is no easy way to know the actual size
+                buff_size *= 128; 
+
+            } else if (strcmp(aux_type, "VARCHAR") == 0) {
+                //VARCHAR does have recover the declared size, but just in case it doesnt, the default length will be 50 + 1 for end value '\0'
+                if(varchar_size != nullptr){
+                    buff_size *= atoi(varchar_size + 1)+1; 
+                }else{
+                    buff_size *= 51;
+                }
+            } else{
+
+                //Default value to prevent crash in case the given type is not recognized
+                buff_size *= 101;
+            }
+        }
+        
+
+        //DEBUG
+        // printf("GetBuffSizeByType\n Type - %s\n Size - %d\n", type, buff_size);
+        free(varchar_size);
+        if(aux_type !=nullptr){
+            free(aux_type);
+        }
+        return buff_size;
+    }
+
+    //Returns the flags of an InputText corresponding to the given string Type
+    int GetInputFlagsByType(char* type){
+        //TO_DO
+        return 0;
+    }
+
+    //Returns the column data of the column at the index given as parameter
+    //The header row of the table with the column metadata has to be created 
+    //before using this function for it to work
+    TList::ColumnData GetTableColData(int col){
+        return TList::GetIndexListNode(
+            TList::GetLastListNode(ContentModule::content_info.values)->info.list_info,
+            col
+        )->info.coldata_info;
+    }
     
     //Executes the given SELECT query and returns the result of the query execution
     int ExecuteSelectQuery(char* s_query, bool is_custom_query){
@@ -135,13 +228,17 @@ namespace DataBaseManager{
             ContentModule::content_info.insert_row = NOT_PROCESSING;
             TList::ClearList(&(ContentModule::content_info.values));
             ContentModule::content_info.is_loaded = false;
+
+            //Begins Data Load
             if(!ContentModule::content_info.is_loaded){
+                //Load Header Row
                 row_aux = TList::CreateList();
 
                 // printf("ExecuteSelectQuery -> columns -> %d\n",sqlite3_column_count(stmt));
                 for (int i = ContentModule::content_info.num_columns-1; i >= 0; i--){
                     strcpy(info_aux.coldata_info.name, sqlite3_column_name(stmt,i));
                     strcpy(info_aux.coldata_info.type, sqlite3_column_decltype(stmt,i));
+                    info_aux.coldata_info.buff_size = GetBuffSizeByType(info_aux.coldata_info.type);
 
                     TList::InsertList(
                         &row_aux, 
@@ -160,22 +257,19 @@ namespace DataBaseManager{
                 ContentModule::content_info.is_loaded = true;
             }
 
+            //Load Available Registers
             while (sqlite3_step(stmt) == SQLITE_ROW) {
                 row_aux = TList::CreateList();
 
-
                 for (int i = ContentModule::content_info.num_columns-1; i >= 0 ; i--){
-                    //Row Data
-                    if(sqlite3_column_text(stmt,i) == nullptr){
-                        info_aux.celldata_info.db_value = (char*) malloc(sizeof(char) * (strlen("\0")+1));
-                        info_aux.celldata_info.update_value = (char*) malloc(sizeof(char) * (strlen("\0")+1));
+                    info_aux.celldata_info.db_value = (char*) malloc(GetTableColData(i).buff_size);
+                    info_aux.celldata_info.update_value = (char*) malloc(GetTableColData(i).buff_size);
 
+                    //Load Row Data
+                    if(sqlite3_column_text(stmt,i) == nullptr){
                         strcpy(info_aux.celldata_info.db_value , "\0");
                         strcpy(info_aux.celldata_info.update_value , "\0");
                     }else{
-                        info_aux.celldata_info.db_value = (char*) malloc(sizeof(char) * (strlen((char*)sqlite3_column_text(stmt,i))+1));
-                        info_aux.celldata_info.update_value = (char*) malloc(sizeof(char) * (strlen((char*)sqlite3_column_text(stmt,i))+1));
-                        
                         strcpy(info_aux.celldata_info.db_value , (char*)sqlite3_column_text(stmt,i));
                         strcpy(info_aux.celldata_info.update_value , (char*)sqlite3_column_text(stmt,i));
                     }
@@ -250,14 +344,14 @@ namespace DataBaseManager{
         int qResult = 1;
         TList::ListInfo aux_info;
         aux_info.str_info = nullptr;
+        char msg[254];
+        int changes;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, i_query, 2);
         strupr(aux_info.str_info);
 
         //DEBUG
         // printf("TABLE NAME: %s\n", aux_info.str_info);
-        
-
         if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
             SetTableNotFoundError();
             qResult = SQLITE_ERROR;
@@ -265,8 +359,19 @@ namespace DataBaseManager{
             qResult = sqlite3_exec(DataBaseManager::db, i_query, nullptr, nullptr, &(DataBaseManager::notif_pop_up.popup_msg));   
         }
 
-        free(aux_info.str_info);
+        qResult = DataBaseManager::QueryErrorManager(qResult);
 
+        if(is_custom_query && qResult == SQLITE_OK){
+            changes = sqlite3_changes(DataBaseManager::db);
+            snprintf(msg, sizeof(msg), "Inserted values: %d\n",changes);
+            SetPopUpValues(
+                &DataBaseManager::notif_pop_up,
+                PopUpType::POP_INFO,
+                msg
+            );
+        }
+
+        free(aux_info.str_info);
         return qResult;
     }
 

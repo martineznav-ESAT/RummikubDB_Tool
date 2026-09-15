@@ -33,6 +33,7 @@ namespace CustomQueryModule{
         switch (DataBaseManager::GetQueryType(q_input)){
             case DataBaseManager::QueryType::SELECT:
                 // printf("SELECT QUERY\n");
+                //TO_DO MANAGE ERRORS CORRECTLY
                 ContentModule::content_info.is_loaded = false;
                 q_result = DataBaseManager::QueryErrorManager(
                     DataBaseManager::ExecuteSelectQuery(q_input, true)
@@ -50,14 +51,7 @@ namespace CustomQueryModule{
                 break;
             case DataBaseManager::QueryType::INSERT:
                 // printf("INSERT QUERY\n");
-                q_result = DataBaseManager::QueryErrorManager(
-                    DataBaseManager::ExecuteInsertQuery(q_input, true) 
-                );
-
-                if(q_result == SQLITE_OK){
-                    changes = sqlite3_changes(DataBaseManager::db);
-                    snprintf(msg, sizeof(msg), "Inserted values: %d\n",changes);
-                }
+                DataBaseManager::ExecuteInsertQuery(q_input, true) ;
                 break;
             case DataBaseManager::QueryType::DELETE:
                 // printf("DELETE QUERY\n");

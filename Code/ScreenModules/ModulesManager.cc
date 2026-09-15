@@ -33,6 +33,6 @@ namespace ModulesManager{
 
     //Ensures everything is closed and freed from memory
     void EmptyMemory(){
-
+        
     }
 }
