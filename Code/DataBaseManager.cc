@@ -18,7 +18,7 @@ namespace DataBaseManager{
         "SELECT name FROM sqlite_master WHERE type = 'table' and name != 'sqlite_sequence'",
         "SELECT * from %s order by 1",
         "pragma table_info(%s)",
-        "delete from %s where %s", //TO_DO
+        "delete from %s %s", //TO_DO
         "insert into %s (%s) values(%s)"
     };
 
@@ -210,7 +210,7 @@ namespace DataBaseManager{
         TList::ListInfo info_aux;
         TList::ListNode* row_aux;
         TList::ListInfo row_info_aux;
-
+        char msg[254];
 
         qResult = sqlite3_prepare_v2(
             DataBaseManager::db,
@@ -295,11 +295,14 @@ namespace DataBaseManager{
             }
 
             ContentModule::content_info.num_rows = TList::ListLength(ContentModule::content_info.values);
+        }else{
+            DataBaseManager::notif_pop_up.popup_msg = (char*) sqlite3_errmsg(db);
         }
 
 
         sqlite3_finalize(stmt);
 
+        qResult = DataBaseManager::QueryErrorManager(qResult);
         // TList::PrintList(ContentModule::content_info.values);
 
         return qResult;
@@ -319,14 +322,16 @@ namespace DataBaseManager{
         int qResult = 1;
         TList::ListInfo aux_info;
         aux_info.str_info = nullptr;
+        char msg[254];
+        int changes;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, u_query, 1);
-        strupr(aux_info.str_info);
+        if(aux_info.str_info){
+            strupr(aux_info.str_info);
+        }
 
         //DEBUG
         // printf("TABLE NAME: %s\n", aux_info.str_info);
-        
-
         if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
             SetTableNotFoundError();
             qResult = SQLITE_ERROR;
@@ -334,8 +339,20 @@ namespace DataBaseManager{
             qResult = sqlite3_exec(DataBaseManager::db, u_query, nullptr, nullptr, &(DataBaseManager::notif_pop_up.popup_msg));   
         }
 
-        free(aux_info.str_info);
+        qResult = DataBaseManager::QueryErrorManager(qResult);
 
+        if(is_custom_query && qResult == SQLITE_OK){
+            changes = sqlite3_changes(DataBaseManager::db);
+            snprintf(msg, sizeof(msg), "Updated rows: %d\n",changes);
+            SetPopUpValues(
+                &DataBaseManager::notif_pop_up,
+                PopUpType::POP_INFO,
+                msg
+            );
+            TablesModule::CallSelectedTableQuery();
+        }
+
+        free(aux_info.str_info);
         return qResult;
     }
 
@@ -348,7 +365,9 @@ namespace DataBaseManager{
         int changes;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, i_query, 2);
-        strupr(aux_info.str_info);
+        if(aux_info.str_info){
+            strupr(aux_info.str_info);
+        }
 
         //DEBUG
         // printf("TABLE NAME: %s\n", aux_info.str_info);
@@ -369,6 +388,7 @@ namespace DataBaseManager{
                 PopUpType::POP_INFO,
                 msg
             );
+            TablesModule::CallSelectedTableQuery();
         }
 
         free(aux_info.str_info);
@@ -380,7 +400,8 @@ namespace DataBaseManager{
         int qResult = 1;
         TList::ListInfo aux_info;
         aux_info.str_info = nullptr;
-
+        char msg[254];
+        int changes;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, d_query, 2);
         if(aux_info.str_info){
@@ -389,13 +410,24 @@ namespace DataBaseManager{
 
         //DEBUG
         // printf("TABLE NAME: %s\n", aux_info.str_info);
-        
-
         if(aux_info.str_info == nullptr || TList::FindInList(TablesModule::db_tables, aux_info) == nullptr ){
             SetTableNotFoundError();
             qResult = SQLITE_ERROR;
         }else{
             qResult = sqlite3_exec(DataBaseManager::db, d_query, nullptr, nullptr, &(DataBaseManager::notif_pop_up.popup_msg));   
+        }
+
+        qResult = DataBaseManager::QueryErrorManager(qResult);
+        
+        if(is_custom_query && qResult == SQLITE_OK){
+            changes = sqlite3_changes(DataBaseManager::db);
+            snprintf(msg, sizeof(msg), "Deleted values: %d\n",changes);
+            SetPopUpValues(
+                &DataBaseManager::notif_pop_up,
+                PopUpType::POP_INFO,
+                msg
+            );
+            TablesModule::CallSelectedTableQuery();
         }
 
         free(aux_info.str_info);

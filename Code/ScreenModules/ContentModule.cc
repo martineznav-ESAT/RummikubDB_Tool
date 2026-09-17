@@ -28,8 +28,7 @@ namespace ContentModule{
         TList::ListNode* row_aux;
         TList::ListInfo row_info_aux;
 
-        printf("ON CLICK ADD BUTTON\n");
-        //TO_DO BUFFER SIZE
+        // printf("ON CLICK ADD BUTTON\n");
         row_aux = TList::CreateList();
 
         for (int i = content_info.num_columns-1; i >= 0 ; i--){
@@ -87,7 +86,6 @@ namespace ContentModule{
 
         //DELETE REGISTER VALUE ASSOCIATED WITH THE BUTTON ROW AND UPDATE THE SELECTED TABLE 
         DataBaseManager::ExecuteDeleteQuery(d_query);
-        TablesModule::CallSelectedTableQuery();
 
         free(d_query);
     }
@@ -166,7 +164,6 @@ namespace ContentModule{
 
         //INSERTS REGISTER VALUE OF THE ACTUAL PROCESSING INSERT ROW AND UPDATE THE SELECTED TABLE 
         DataBaseManager::ExecuteInsertQuery(i_query);
-        TablesModule::CallSelectedTableQuery();
 
         if(i_query != nullptr){
             free(i_query);

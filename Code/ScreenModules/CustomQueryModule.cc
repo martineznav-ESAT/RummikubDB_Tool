@@ -33,37 +33,23 @@ namespace CustomQueryModule{
         switch (DataBaseManager::GetQueryType(q_input)){
             case DataBaseManager::QueryType::SELECT:
                 // printf("SELECT QUERY\n");
-                //TO_DO MANAGE ERRORS CORRECTLY
-                ContentModule::content_info.is_loaded = false;
-                q_result = DataBaseManager::QueryErrorManager(
-                    DataBaseManager::ExecuteSelectQuery(q_input, true)
-                );
+                DataBaseManager::ExecuteSelectQuery(q_input, true);
                 break;
             case DataBaseManager::QueryType::UPDATE:
                 // printf("UPDATE QUERY\n");
-                q_result = DataBaseManager::QueryErrorManager(
-                    DataBaseManager::ExecuteUpdateQuery(q_input, true)
-                );
-                if(q_result == SQLITE_OK){
-                    changes = sqlite3_changes(DataBaseManager::db);
-                    snprintf(msg, sizeof(msg), "Updated rows: %d\n",changes);
-                }
+                DataBaseManager::ExecuteUpdateQuery(q_input, true);
                 break;
+
             case DataBaseManager::QueryType::INSERT:
                 // printf("INSERT QUERY\n");
                 DataBaseManager::ExecuteInsertQuery(q_input, true) ;
                 break;
+
             case DataBaseManager::QueryType::DELETE:
                 // printf("DELETE QUERY\n");
-                q_result = DataBaseManager::QueryErrorManager(
-                    DataBaseManager::ExecuteDeleteQuery(q_input, true) 
-                );
-
-                if(q_result == SQLITE_OK){
-                    changes = sqlite3_changes(DataBaseManager::db);
-                    snprintf(msg, sizeof(msg), "Deleted values: %d\n",changes);
-                }
+                DataBaseManager::ExecuteDeleteQuery(q_input, true);
                 break;
+
             default:
                 DataBaseManager::SetPopUpValues(
                     &DataBaseManager::notif_pop_up,
@@ -73,16 +59,6 @@ namespace CustomQueryModule{
 
                 break;
         }
-
-        if(DataBaseManager::GetQueryType(q_input) != DataBaseManager::QueryType::SELECT && q_result == SQLITE_OK){
-            TablesModule::CallSelectedTableQuery();
-            DataBaseManager::SetPopUpValues(
-                &DataBaseManager::notif_pop_up,
-                DataBaseManager::PopUpType::POP_INFO, 
-                msg
-            );
-        }
-
     }
 
     //Draws on screen the bottom space in which the user can execute custom querys
