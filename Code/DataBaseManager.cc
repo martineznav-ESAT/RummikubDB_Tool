@@ -341,14 +341,16 @@ namespace DataBaseManager{
 
         qResult = DataBaseManager::QueryErrorManager(qResult);
 
-        if(is_custom_query && qResult == SQLITE_OK){
-            changes = sqlite3_changes(DataBaseManager::db);
-            snprintf(msg, sizeof(msg), "Updated rows: %d\n",changes);
-            SetPopUpValues(
-                &DataBaseManager::notif_pop_up,
-                PopUpType::POP_INFO,
-                msg
-            );
+        if(qResult == SQLITE_OK){
+            if(is_custom_query){
+                changes = sqlite3_changes(DataBaseManager::db);
+                snprintf(msg, sizeof(msg), "Updated rows: %d\n",changes);
+                SetPopUpValues(
+                    &DataBaseManager::notif_pop_up,
+                    PopUpType::POP_INFO,
+                    msg
+                );
+            }
             TablesModule::CallSelectedTableQuery();
         }
 
@@ -380,14 +382,17 @@ namespace DataBaseManager{
 
         qResult = DataBaseManager::QueryErrorManager(qResult);
 
-        if(is_custom_query && qResult == SQLITE_OK){
-            changes = sqlite3_changes(DataBaseManager::db);
-            snprintf(msg, sizeof(msg), "Inserted values: %d\n",changes);
-            SetPopUpValues(
-                &DataBaseManager::notif_pop_up,
-                PopUpType::POP_INFO,
-                msg
-            );
+        
+        if(qResult == SQLITE_OK){
+            if(is_custom_query){
+                changes = sqlite3_changes(DataBaseManager::db);
+                snprintf(msg, sizeof(msg), "Inserted values: %d\n",changes);
+                SetPopUpValues(
+                    &DataBaseManager::notif_pop_up,
+                    PopUpType::POP_INFO,
+                    msg
+                );
+            }
             TablesModule::CallSelectedTableQuery();
         }
 
@@ -419,14 +424,16 @@ namespace DataBaseManager{
 
         qResult = DataBaseManager::QueryErrorManager(qResult);
         
-        if(is_custom_query && qResult == SQLITE_OK){
-            changes = sqlite3_changes(DataBaseManager::db);
-            snprintf(msg, sizeof(msg), "Deleted values: %d\n",changes);
-            SetPopUpValues(
-                &DataBaseManager::notif_pop_up,
-                PopUpType::POP_INFO,
-                msg
-            );
+        if(qResult == SQLITE_OK){
+            if(is_custom_query){
+                changes = sqlite3_changes(DataBaseManager::db);
+                snprintf(msg, sizeof(msg), "Deleted values: %d\n",changes);
+                SetPopUpValues(
+                    &DataBaseManager::notif_pop_up,
+                    PopUpType::POP_INFO,
+                    msg
+                );
+            }
             TablesModule::CallSelectedTableQuery();
         }
 

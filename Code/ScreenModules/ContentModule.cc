@@ -100,8 +100,8 @@ namespace ContentModule{
         char* aux_type = nullptr;
 
         //DEBUG
-        printf("OnInsertButton ROW %d\n",r);
-        TList::PrintList(row_node);
+        // printf("OnInsertButton ROW %d\n",r);
+        // TList::PrintList(row_node);
 
         for (int i = ContentModule::content_info.num_columns-1; i >= 0; i--){
             cell_aux = TList::GetIndexListNode(row_node, i);
@@ -143,8 +143,8 @@ namespace ContentModule{
         }
 
         //DEBUG
-        printf("COLS TO INSERT INTO -> %s\n",cols_s);
-        printf("VALUES TO INSERT -> %s\n",values_s);
+        // printf("COLS TO INSERT INTO -> %s\n",cols_s);
+        // printf("VALUES TO INSERT -> %s\n",values_s);
         
 
         i_query = DataBaseManager::GetBaseQuery(
@@ -156,10 +156,10 @@ namespace ContentModule{
         );
 
         //DEBUG
-        printf(
-            "INSERT QUERY:\n %s\n",
-            i_query
-        );
+        // printf(
+        //     "INSERT QUERY:\n %s\n",
+        //     i_query
+        // );
         
 
         //INSERTS REGISTER VALUE OF THE ACTUAL PROCESSING INSERT ROW AND UPDATE THE SELECTED TABLE 
