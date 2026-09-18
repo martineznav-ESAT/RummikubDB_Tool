@@ -9,7 +9,7 @@ namespace ContentModule{
     #define NOT_PROCESSING -1
     
     struct ContentInfo{
-        bool is_loaded = false;
+        bool is_loaded = false, is_custom = false;
         int num_columns, num_rows;
         //Register Row list 
         //where index 0 should correspond to the metadata/column types

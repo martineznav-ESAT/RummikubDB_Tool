@@ -33,21 +33,21 @@ namespace CustomQueryModule{
         switch (DataBaseManager::GetQueryType(q_input)){
             case DataBaseManager::QueryType::SELECT:
                 // printf("SELECT QUERY\n");
-                DataBaseManager::ExecuteSelectQuery(q_input, true);
+                q_result = DataBaseManager::ExecuteSelectQuery(q_input, true);
                 break;
             case DataBaseManager::QueryType::UPDATE:
                 // printf("UPDATE QUERY\n");
-                DataBaseManager::ExecuteUpdateQuery(q_input, true);
+                q_result = DataBaseManager::ExecuteUpdateQuery(q_input, true);
                 break;
 
             case DataBaseManager::QueryType::INSERT:
                 // printf("INSERT QUERY\n");
-                DataBaseManager::ExecuteInsertQuery(q_input, true) ;
+                q_result = DataBaseManager::ExecuteInsertQuery(q_input, true) ;
                 break;
 
             case DataBaseManager::QueryType::DELETE:
                 // printf("DELETE QUERY\n");
-                DataBaseManager::ExecuteDeleteQuery(q_input, true);
+                q_result = DataBaseManager::ExecuteDeleteQuery(q_input, true);
                 break;
 
             default:
@@ -59,13 +59,14 @@ namespace CustomQueryModule{
 
                 break;
         }
+
     }
 
     //Draws on screen the bottom space in which the user can execute custom querys
     void Draw(){
         ImGui::Begin("Custom Querys", 0, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse);
-        ImGui::SetWindowSize({Utils::kWindowWidth*0.671f, Utils::kWindowHeight*0.35f});
-        ImGui::SetWindowPos({Utils::kWindowWidth*0.33f, Utils::kWindowHeight*0.65f});
+        ImGui::SetWindowSize({Utils::kWindowWidth*0.8f, Utils::kWindowHeight*0.35f});
+        ImGui::SetWindowPos({Utils::kWindowWidth*0.20f, Utils::kWindowHeight*0.65f});
 
         ImGui::InputTextMultiline(
             "Custom Query", query_input, sizeof(char) * query_max_length, 

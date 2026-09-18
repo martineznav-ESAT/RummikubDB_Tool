@@ -430,21 +430,22 @@ namespace ContentModule{
         char aux_str[100] = "\0";
 
         if(content_info.is_loaded && !TList::IsEmptyList(&(content_info.values))){
-            
-            if(content_info.insert_row == NOT_PROCESSING){
-                if(ImGui::Button("ADD NEW ROW", ImVec2(-1,0))){
-                    OnAddButton();
+            if(!content_info.is_custom){
+                if(content_info.insert_row == NOT_PROCESSING){
+                    if(ImGui::Button("ADD NEW ROW", ImVec2(-1,0))){
+                        OnAddButton();
+                    }
+                }else{
+                    ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(100, 100, 100, 255));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 100, 100, 255));
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(100, 100, 100, 255));
+                    ImGui::Button("ADDING ROW...", ImVec2(-1,0));
+                    ImGui::PopStyleColor(3);
                 }
-            }else{
-                ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(100, 100, 100, 255));
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 100, 100, 255));
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(100, 100, 100, 255));
-                ImGui::Button("ADDING ROW...", ImVec2(-1,0));
-                ImGui::PopStyleColor(3);
+
             }
 
             ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(0.0f, 0.0f));
-
             ImGui::BeginTable(
                 "content", content_info.num_columns+1, 
                 ImGuiTableFlags_Borders | 
@@ -490,52 +491,53 @@ namespace ContentModule{
                     }
                     ImGui::TableNextColumn();
 
-                    if(r != content_info.insert_row && r != content_info.update_row){
-                        float width = ImGui::GetContentRegionAvail().x;
-                        float spacing = ImGui::GetStyle().ItemSpacing.x;
-                        float button_width = (width - spacing) * 0.5f;
+                    if(!content_info.is_custom){
+                        if(r != content_info.insert_row && r != content_info.update_row){
+                            float width = ImGui::GetContentRegionAvail().x;
+                            float spacing = ImGui::GetStyle().ItemSpacing.x;
+                            float button_width = (width - spacing) * 0.5f;
 
-                        //DRAW EDIT BUTTON
-                        sprintf(aux_str, "E##upd_%d", r);
-                        if(ImGui::Button(aux_str, ImVec2(button_width,0))){
-                            OnEditButton(r);
-                        }
+                            //DRAW EDIT BUTTON
+                            sprintf(aux_str, "E##upd_%d", r);
+                            if(ImGui::Button(aux_str, ImVec2(button_width,0))){
+                                OnEditButton(r);
+                            }
 
-                        ImGui::SameLine();
-                        //DRAW DELETE BUTTON
-                        ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(180, 60, 60, 255));
-                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(200, 70, 70, 255));
-                        ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(160, 50, 50, 255));
-                        sprintf(aux_str, "X##del_%d", r);
-                        if(ImGui::Button(aux_str, ImVec2(button_width,0))){
-                            OnDeleteButton(r);
-                        }
-                        ImGui::PopStyleColor(3);
-                        
-                    }else{
-                        //DRAW INSERT BUTTON
-                        if(r == content_info.insert_row){
-                            ImGui::PushStyleColor(ImGuiCol_Button,        IM_COL32(80, 180, 100, 255));
-                            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 200, 120, 255));
-                            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  IM_COL32(60, 160, 80, 255));
-                            if(ImGui::Button("+", ImVec2(-FLT_MIN,0))){
-                                OnInsertButton(r);
+                            ImGui::SameLine();
+                            //DRAW DELETE BUTTON
+                            ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(180, 60, 60, 255));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(200, 70, 70, 255));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(160, 50, 50, 255));
+                            sprintf(aux_str, "X##del_%d", r);
+                            if(ImGui::Button(aux_str, ImVec2(button_width,0))){
+                                OnDeleteButton(r);
                             }
                             ImGui::PopStyleColor(3);
-                        }
-
-                        //DRAW UPDATE BUTTON
-                        if(r == content_info.update_row){
-                            ImGui::PushStyleColor(ImGuiCol_Button,        IM_COL32(80, 180, 100, 255));
-                            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 200, 120, 255));
-                            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  IM_COL32(60, 160, 80, 255));
-                            if(ImGui::Button("U", ImVec2(-FLT_MIN,0))){
-                                OnUpdateButton(r);
+                            
+                        }else{
+                            //DRAW INSERT BUTTON
+                            if(r == content_info.insert_row){
+                                ImGui::PushStyleColor(ImGuiCol_Button,        IM_COL32(80, 180, 100, 255));
+                                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 200, 120, 255));
+                                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  IM_COL32(60, 160, 80, 255));
+                                if(ImGui::Button("+", ImVec2(-FLT_MIN,0))){
+                                    OnInsertButton(r);
+                                }
+                                ImGui::PopStyleColor(3);
                             }
-                            ImGui::PopStyleColor(3);
+
+                            //DRAW UPDATE BUTTON
+                            if(r == content_info.update_row){
+                                ImGui::PushStyleColor(ImGuiCol_Button,        IM_COL32(80, 180, 100, 255));
+                                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 200, 120, 255));
+                                ImGui::PushStyleColor(ImGuiCol_ButtonActive,  IM_COL32(60, 160, 80, 255));
+                                if(ImGui::Button("U", ImVec2(-FLT_MIN,0))){
+                                    OnUpdateButton(r);
+                                }
+                                ImGui::PopStyleColor(3);
+                            }
                         }
                     }
-                    
                 }
             }
 
@@ -552,8 +554,8 @@ namespace ContentModule{
     //Draws on the screen top space the result of the custom query or the content of the selected table
     void Draw(){
         ImGui::Begin("Query Content", 0, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse);
-        ImGui::SetWindowSize({Utils::kWindowWidth*0.671f, Utils::kWindowHeight*0.65f});
-        ImGui::SetWindowPos({Utils::kWindowWidth*0.33f, 0.0f});
+        ImGui::SetWindowSize({Utils::kWindowWidth*0.80f, Utils::kWindowHeight*0.65f});
+        ImGui::SetWindowPos({Utils::kWindowWidth*0.2f, 0.0f});
 
         DrawContentTable();
 

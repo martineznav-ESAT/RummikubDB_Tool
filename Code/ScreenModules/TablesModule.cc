@@ -78,7 +78,7 @@ namespace TablesModule{
     void Draw(){
         //Window Init
         ImGui::Begin("Rummikub DB", 0, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse);
-        ImGui::SetWindowSize({Utils::kWindowWidth*0.33f, Utils::kWindowHeight*1.0f});
+        ImGui::SetWindowSize({Utils::kWindowWidth*0.20f, Utils::kWindowHeight*1.0f});
         ImGui::SetWindowPos({0.0f, 0.0f});
 
         ShowAvailableTables();

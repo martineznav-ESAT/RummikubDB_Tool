@@ -413,10 +413,15 @@ namespace DataBaseManager{
 
         sqlite3_finalize(stmt);
 
-        if(qResult == SQLITE_OK && !is_custom_query){
-            Utils::GetStringWordAtPosition(&aux_tablename,s_query,3);
-            ExecutePragmaQuery(aux_tablename);
-            free(aux_tablename);
+        if(qResult == SQLITE_OK){
+            if(is_custom_query){
+                ContentModule::content_info.is_custom = true;
+            }else{
+                Utils::GetStringWordAtPosition(&aux_tablename,s_query,3);
+                ExecutePragmaQuery(aux_tablename);
+                free(aux_tablename);
+                ContentModule::content_info.is_custom = false;
+            }
         }
 
         qResult = DataBaseManager::QueryErrorManager(qResult);
