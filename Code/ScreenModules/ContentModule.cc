@@ -68,6 +68,8 @@ namespace ContentModule{
         char* d_query = nullptr;
         char where_clause[512] = "\0";
         char aux_str[254] = "\0";
+        char* aux_type = nullptr;
+        bool is_first; //Loop Aux
         TList::ListNode* header_row = TList::GetLastListNode(content_info.values)->info.list_info;
         TList::ListNode* actual_register = TList::GetIndexListNode(content_info.values, r)->info.list_info;
         TList::ColumnData* actual_col = nullptr;
@@ -76,26 +78,57 @@ namespace ContentModule{
         // printf("ROW TO DELETE %d\n",r);
         // TList::PrintList(actual_register);
 
-        for (int c = 0; c < content_info.num_columns; c++){
+        for (int c = 0, is_first = true; c < content_info.num_columns; c++){
             actual_col = DataBaseManager::GetTableColData(c);
             if(actual_col->is_pk){
-                if(strcmp(where_clause,"\0") == 0){
-                    sprintf(
-                        aux_str,
-                        "WHERE %s = %s ",
-                        actual_col->name, 
-                        TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
-                    );
-                    strcpy(where_clause,aux_str);
+                Utils::GetStringWordAtPosition(&aux_type, actual_col->type, 0);
+                if(is_first){
+                    switch (DataBaseManager::StringToCellType(aux_type)){
+                        case DataBaseManager::CellType::VARCHAR:
+                        case DataBaseManager::CellType::CHAR:
+                            sprintf(
+                                aux_str,
+                                "WHERE %s = '%s' ",
+                                actual_col->name, 
+                                TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                            );
+                            break;
+                        
+                        default:
+                            sprintf(
+                                aux_str,
+                                "WHERE %s = %s ",
+                                actual_col->name, 
+                                TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                            );
+                        break;
+                    }
+
+                    is_first = false;
                 }else{
-                    sprintf(
-                        aux_str,
-                        "AND %s = %s ",
-                        actual_col->name, 
-                        TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
-                    );
-                    strcat(where_clause,aux_str);
+                    switch (DataBaseManager::StringToCellType(aux_type)){
+                        case DataBaseManager::CellType::VARCHAR:
+                        case DataBaseManager::CellType::CHAR:
+                            sprintf(
+                                aux_str,
+                                "AND %s = '%s' ",
+                                actual_col->name, 
+                                TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                            );
+                            break;
+                        
+                        default:
+                            sprintf(
+                                aux_str,
+                                "AND %s = %s ",
+                                actual_col->name, 
+                                TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                            );
+                        break;
+                    }
                 }
+
+                strcat(where_clause,aux_str);
             }
         }
         
@@ -174,7 +207,6 @@ namespace ContentModule{
         //DEBUG
         // printf("COLS TO INSERT INTO -> %s\n",cols_s);
         // printf("VALUES TO INSERT -> %s\n",values_s);
-        
 
         i_query = DataBaseManager::GetBaseQuery(
             DataBaseManager::BaseSQL_Querys::BASIC_INSERT,
@@ -199,6 +231,150 @@ namespace ContentModule{
         }
     }
 
+    void OnEditButton(int r){
+        content_info.update_row = r;
+    }
+
+    void OnUpdateButton(int r){
+        char* u_query = nullptr;
+        char where_clause[512] = "\0";
+        char aux_str[254] = "\0";
+        char* aux_type = nullptr;
+        bool is_first; //Loop aux
+        TList::ListNode* header_row = TList::GetLastListNode(content_info.values)->info.list_info;
+        TList::ListNode* actual_register = TList::GetIndexListNode(content_info.values, r)->info.list_info;
+        TList::ColumnData* actual_col = nullptr;
+
+        for (int c = 0, is_first = true; c < content_info.num_columns; c++){
+            actual_col = DataBaseManager::GetTableColData(c);
+            Utils::GetStringWordAtPosition(&aux_type, actual_col->type, 0);
+
+            //Adds separation comma or not based on being the first column
+            if(is_first){
+                switch (DataBaseManager::StringToCellType(aux_type)){
+                    case DataBaseManager::CellType::VARCHAR:
+                    case DataBaseManager::CellType::CHAR:
+                        sprintf(
+                            aux_str,
+                            "%s = '%s' ",
+                            actual_col->name, 
+                            TList::GetIndexListNode(actual_register,c)->info.celldata_info.update_value
+                        );
+                        break;
+                    
+                    default:
+                        sprintf(
+                            aux_str,
+                            "%s = %s ",
+                            actual_col->name, 
+                            TList::GetIndexListNode(actual_register,c)->info.celldata_info.update_value
+                        );
+                    break;
+                }
+
+                is_first = false;
+            }else{
+                switch (DataBaseManager::StringToCellType(aux_type)){
+                    case DataBaseManager::CellType::VARCHAR:
+                    case DataBaseManager::CellType::CHAR:
+                        sprintf(
+                            aux_str,
+                            ", %s = '%s' ",
+                            actual_col->name, 
+                            TList::GetIndexListNode(actual_register,c)->info.celldata_info.update_value
+                        );
+                        break;
+                    
+                    default:
+                        sprintf(
+                            aux_str,
+                            ", %s = %s ",
+                            actual_col->name, 
+                            TList::GetIndexListNode(actual_register,c)->info.celldata_info.update_value
+                        );
+                    break;
+                }
+
+            }
+
+            strcat(where_clause, aux_str);
+        }
+
+        for (int c = 0, is_first = true; c < content_info.num_columns; c++){
+            actual_col = DataBaseManager::GetTableColData(c);
+            
+            if(actual_col->is_pk){
+                Utils::GetStringWordAtPosition(&aux_type, actual_col->type, 0);
+                if(is_first){
+                    switch (DataBaseManager::StringToCellType(aux_type)){
+                        case DataBaseManager::CellType::VARCHAR:
+                        case DataBaseManager::CellType::CHAR:
+                            sprintf(
+                                aux_str,
+                                "WHERE %s = '%s' ",
+                                actual_col->name, 
+                                TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                            );
+                            break;
+                        
+                        default:
+                            sprintf(
+                                aux_str,
+                                "WHERE %s = %s ",
+                                actual_col->name, 
+                                TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                            );
+                        break;
+                    }
+
+                    is_first = false;
+                }else{
+                    switch (DataBaseManager::StringToCellType(aux_type)){
+                        case DataBaseManager::CellType::VARCHAR:
+                        case DataBaseManager::CellType::CHAR:
+                            sprintf(
+                                aux_str,
+                                "AND %s = '%s' ",
+                                actual_col->name, 
+                                TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                            );
+                            break;
+                        
+                        default:
+                            sprintf(
+                                aux_str,
+                                "AND %s = %s ",
+                                actual_col->name, 
+                                TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                            );
+                        break;
+                    }
+                }
+
+                strcat(where_clause,aux_str);
+            }
+        }
+        
+
+        u_query = DataBaseManager::GetBaseQuery(
+            DataBaseManager::BaseSQL_Querys::BASIC_UPDATE,
+            TList::GetIndexListNode(TablesModule::db_tables, TablesModule::selectedTable)->info.str_info,
+            where_clause
+        );
+
+        //DEBUG
+        printf(
+            "UPDATE QUERY:\n %s\n",
+            u_query
+        );
+        
+
+        //UPDATE REGISTER VALUES ASSOCIATED WITH THE BUTTON ROW BASED ON THE INPUTS AND UPDATE THE SELECTED TABLE 
+        DataBaseManager::ExecuteUpdateQuery(u_query);
+
+        free(u_query);
+    }
+
     void DrawCellInputValue(int row, int col){
         TList::ListNode* cell = 
             TList::GetIndexListNode(
@@ -210,21 +386,43 @@ namespace ContentModule{
         char cell_label[100];
         sprintf(cell_label, "##cell_%d_%d", row, col);
 
-        ImGui::SetNextItemWidth(-FLT_MIN);
         
         if (col_metadata->is_pk){
             ImGui::TableSetBgColor(
                 ImGuiTableBgTarget_CellBg,
-                IM_COL32(180, 180, 0, 255),
+                IM_COL32(90, 90, 0, 255),
                 col
             );
         }
-        ImGui::InputText(
-            cell_label,
-            cell->info.celldata_info.update_value,
-            col_metadata->buff_size,
-            DataBaseManager::GetInputFlagsByType(col_metadata->type)
-        );
+
+        if(row == content_info.update_row || row == content_info.insert_row){
+            if(DataBaseManager::StringToCellType(col_metadata->type) == DataBaseManager::CellType::BOOLEAN){
+                bool check_value = strcmp(cell->info.celldata_info.update_value, "1") == 0;
+                float cell_width = ImGui::GetContentRegionAvail().x;
+                float checkbox_width = ImGui::GetFrameHeight();
+
+                ImGui::SetCursorPosX(
+                    ImGui::GetCursorPosX() + (cell_width - checkbox_width) * 0.5f
+                );
+
+                if(ImGui::Checkbox(cell_label, &check_value)){
+                    strcpy(cell->info.celldata_info.update_value, check_value ? "1" : "0");
+                };
+            }else{
+                ImGui::SetNextItemWidth(-FLT_MIN);
+                ImGui::InputText(
+                    cell_label,
+                    cell->info.celldata_info.update_value,
+                    col_metadata->buff_size,
+                    DataBaseManager::GetInputFlagsByType(col_metadata->type)
+                );
+            }
+        }else{
+            ImGui::SetNextItemWidth(-FLT_MIN);
+            ImGui::Text(
+                cell->info.celldata_info.db_value
+            );
+        }
     }
 
     //Draws the table of the current query content. No matter if it is a custom query or a table selection
@@ -293,21 +491,46 @@ namespace ContentModule{
                     ImGui::TableNextColumn();
 
                     if(r != content_info.insert_row && r != content_info.update_row){
+                        float width = ImGui::GetContentRegionAvail().x;
+                        float spacing = ImGui::GetStyle().ItemSpacing.x;
+                        float button_width = (width - spacing) * 0.5f;
+
+                        //DRAW EDIT BUTTON
+                        sprintf(aux_str, "E##upd_%d", r);
+                        if(ImGui::Button(aux_str, ImVec2(button_width,0))){
+                            OnEditButton(r);
+                        }
+
+                        ImGui::SameLine();
+                        //DRAW DELETE BUTTON
                         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(180, 60, 60, 255));
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(200, 70, 70, 255));
                         ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(160, 50, 50, 255));
                         sprintf(aux_str, "X##del_%d", r);
-                        if(ImGui::Button(aux_str, ImVec2(-FLT_MIN,0))){
+                        if(ImGui::Button(aux_str, ImVec2(button_width,0))){
                             OnDeleteButton(r);
                         }
                         ImGui::PopStyleColor(3);
+                        
                     }else{
+                        //DRAW INSERT BUTTON
                         if(r == content_info.insert_row){
                             ImGui::PushStyleColor(ImGuiCol_Button,        IM_COL32(80, 180, 100, 255));
                             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 200, 120, 255));
                             ImGui::PushStyleColor(ImGuiCol_ButtonActive,  IM_COL32(60, 160, 80, 255));
                             if(ImGui::Button("+", ImVec2(-FLT_MIN,0))){
                                 OnInsertButton(r);
+                            }
+                            ImGui::PopStyleColor(3);
+                        }
+
+                        //DRAW UPDATE BUTTON
+                        if(r == content_info.update_row){
+                            ImGui::PushStyleColor(ImGuiCol_Button,        IM_COL32(80, 180, 100, 255));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(100, 200, 120, 255));
+                            ImGui::PushStyleColor(ImGuiCol_ButtonActive,  IM_COL32(60, 160, 80, 255));
+                            if(ImGui::Button("U", ImVec2(-FLT_MIN,0))){
+                                OnUpdateButton(r);
                             }
                             ImGui::PopStyleColor(3);
                         }

@@ -18,8 +18,9 @@ namespace DataBaseManager{
         "SELECT name FROM sqlite_master WHERE type = 'table' and name != 'sqlite_sequence'",
         "SELECT * from %s order by 1",
         "pragma table_info(%s)",
-        "delete from %s %s", //TO_DO
-        "insert into %s (%s) values(%s)"
+        "delete from %s %s",
+        "insert into %s (%s) values(%s)",
+        "update %s SET %s"
     };
 
     sqlite3 *db;
@@ -123,6 +124,26 @@ namespace DataBaseManager{
                 );
 
             break;
+
+            case BaseSQL_Querys::BASIC_UPDATE:
+                // printf("%s | %s | %s \n",tablename,field,value);
+
+                query_length = sizeof(char)*(1 + strlen(tablename) + strlen(where_clause) + strlen(kBaseSQL_Querys[(int)query]));
+                
+                r_query = (char*) malloc(query_length);
+
+                //Builds the query with the tablename and where_clause given. 
+                //In this scenario, the shere_clause has to include first the SET columns without the SET word
+                //Check kBaseSQL_Querys for easier understandment
+                snprintf(
+                    (char*)r_query,
+                    query_length,
+                    kBaseSQL_Querys[(int)query],
+                    tablename,
+                    where_clause
+                );
+
+            break;
             
             default:
 
@@ -136,7 +157,30 @@ namespace DataBaseManager{
         return r_query;
     }
 
+    //Converts a string to a CellType enum value
+    CellType StringToCellType(char* type_str){
+        CellType cell_type;
 
+        // If - else structure simulating a switch for strings 
+        if (strcmp(type_str, "INTEGER") == 0){
+            cell_type = CellType::INTEGER;
+            
+        } else if (strcmp(type_str, "DECIMAL") == 0) {
+            cell_type = CellType::DECIMAL;
+
+        } else if (strcmp(type_str, "VARCHAR") == 0) {
+            cell_type = CellType::VARCHAR;
+
+        } else if (strcmp(type_str, "BOOLEAN") == 0) {
+            cell_type = CellType::BOOLEAN;
+
+        } else {
+            cell_type = CellType::TOTAL_CELLTYPES;
+
+        }
+
+        return cell_type;
+    }
 
     //Returns an integer representing the amount of allocated memory needed based of a string that represents an SQLITE Type
     int GetBuffSizeByType(char* type){
@@ -156,27 +200,30 @@ namespace DataBaseManager{
             Utils::GetStringWordAtPosition(&varchar_size, type, 1);
             Utils::GetStringWordAtPosition(&aux_type, type, 0);
 
-            //TO_DO REPLACE WITH CUSTOM FUNCTION AND SWITCH
-            // If - else structure simulating a switch for strings 
-            if (strcmp(aux_type, "INTEGER") == 0){
-                //INTEGER max digits 11 when negative. Extra for string end value '\0'
-                buff_size *= 12; 
+            switch (StringToCellType(aux_type)){
+                case CellType::INTEGER :
+                    //INTEGER max digits 11 when negative. Extra for string end value '\0'
+                    buff_size *= 12; 
+                break;
 
-            } else if (strcmp(aux_type, "DECIMAL") == 0) {
-                //DECIMAL Not real max digits, but a big enough value for this app since there is no easy way to know the actual size
-                buff_size *= 128; 
+                case CellType::DECIMAL :
+                    //DECIMAL Not real max digits, but a big enough value for this app since there is no easy way to know the actual size
+                    buff_size *= 128; 
+                break;
 
-            } else if (strcmp(aux_type, "VARCHAR") == 0) {
-                //VARCHAR does have recover the declared size, but just in case it doesnt, the default length will be 50 + 1 for end value '\0'
-                if(varchar_size != nullptr){
-                    buff_size *= atoi(varchar_size + 1)+1; 
-                }else{
-                    buff_size *= 51;
-                }
-            } else{
-
-                //Default value to prevent crash in case the given type is not recognized
-                buff_size *= 101;
+                case CellType::VARCHAR :
+                    //VARCHAR does recover the declared size, but just in case it doesnt, the default length will be 50 + 1 for end value '\0'
+                    if(varchar_size != nullptr){
+                        buff_size *= atoi(varchar_size + 1)+1; 
+                    }else{
+                        buff_size *= 51;
+                    }
+                break;
+                
+                default:
+                    //Default value to prevent crash in case the given type is not recognized
+                    buff_size *= 101;
+                break;
             }
         }
         
@@ -191,9 +238,35 @@ namespace DataBaseManager{
     }
 
     //Returns the flags of an InputText corresponding to the given string Type
-    int GetInputFlagsByType(char* type){
-        //TO_DO
-        return 0;
+    ImGuiInputTextFlags GetInputFlagsByType(char* type){
+        ImGuiInputTextFlags flags = ImGuiInputTextFlags_None;
+        char* aux_type = nullptr;
+
+        if(type != nullptr){
+            aux_type = (char*)malloc(sizeof(char)*(strlen(type)+1));
+
+            strcpy(aux_type, type);
+            aux_type = strupr(aux_type);
+
+            Utils::GetStringWordAtPosition(&aux_type, type, 0);
+
+            switch (StringToCellType(aux_type)){
+                case CellType::INTEGER :
+                    flags |= ImGuiInputTextFlags_CharsDecimal;
+                break;
+
+                case CellType::DECIMAL :
+                    flags |= ImGuiInputTextFlags_CharsScientific;
+                break;
+            }
+        }
+        
+
+        //DEBUG
+        if(aux_type != nullptr){
+            free(aux_type);
+        }
+        return flags;
     }
 
     //Returns the column data of the column at the index given as parameter

@@ -15,8 +15,10 @@ namespace DataBaseManager{
         PRAGMA_QUERY,
         BASIC_DELETE,
         BASIC_INSERT,
+        BASIC_UPDATE,
         TOTAL_QUERYS
     };
+
 
     enum QueryType{
         SELECT,
@@ -31,6 +33,8 @@ namespace DataBaseManager{
         INTEGER,
         DECIMAL,
         VARCHAR,
+        CHAR,
+        BOOLEAN,
         TOTAL_CELLTYPES
     };
 
@@ -61,6 +65,9 @@ namespace DataBaseManager{
     // insert_values -> When doing an insert, the content of the actual values () to insert. Default value is nullptr. | Format -> "'value1', 'value2', 'value3', ..., 'valueN'"  
     char* GetBaseQuery(BaseSQL_Querys query, char* tablename = nullptr, char* where_clause = nullptr, char* insert_cols = nullptr, char* insert_values = nullptr);
 
+    //Converts a string to a CellType enum value
+    CellType StringToCellType(char* type_str);
+    
     //Returns an integer representing the amount of allocated memory needed based of a string that represents an SQLITE Type
     int GetBuffSizeByType(char* type);
 
