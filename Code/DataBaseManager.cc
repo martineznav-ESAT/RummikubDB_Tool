@@ -72,11 +72,12 @@ namespace DataBaseManager{
 
         switch (query){
             case BaseSQL_Querys::SELECT_QUERY:
+            case BaseSQL_Querys::PRAGMA_QUERY:
                 query_length = sizeof(char)*(1 + strlen(tablename) + strlen(kBaseSQL_Querys[(int)query]));
                 
                 r_query = (char*) malloc(query_length);
 
-                //Builds the select query with the tablename given
+                //Builds the query with the tablename given
                 snprintf(
                     (char*)r_query,
                     query_length,
@@ -93,7 +94,7 @@ namespace DataBaseManager{
                 
                 r_query = (char*) malloc(query_length);
 
-                //Builds the select query with the tablename given
+                //Builds the query with the tablename and where clause given
                 snprintf(
                     (char*)r_query,
                     query_length,
@@ -111,7 +112,7 @@ namespace DataBaseManager{
                 
                 r_query = (char*) malloc(query_length);
 
-                //Builds the select query with the tablename given
+                //Builds the query with the tablename, columns, and values given
                 snprintf(
                     (char*)r_query,
                     query_length,
@@ -124,6 +125,8 @@ namespace DataBaseManager{
             break;
             
             default:
+
+                //Gets the stored query
                 r_query = kBaseSQL_Querys[(int)query];
                 break;
         }
@@ -196,13 +199,46 @@ namespace DataBaseManager{
     //Returns the column data of the column at the index given as parameter
     //The header row of the table with the column metadata has to be created 
     //before using this function for it to work
-    TList::ColumnData GetTableColData(int col){
-        return TList::GetIndexListNode(
+    TList::ColumnData* GetTableColData(int col){
+        return &(TList::GetIndexListNode(
             TList::GetLastListNode(ContentModule::content_info.values)->info.list_info,
             col
-        )->info.coldata_info;
+        )->info.coldata_info);
     }
     
+    int ExecutePragmaQuery(char* tablename){
+        int qResult = 1;
+        sqlite3_stmt* stmt;
+        char* p_query;
+
+        p_query = GetBaseQuery(BaseSQL_Querys::PRAGMA_QUERY, tablename);
+
+        qResult = sqlite3_prepare_v2(
+            DataBaseManager::db,
+            p_query,
+            -1,
+            &stmt,
+            nullptr
+        );
+
+        if(qResult == SQLITE_OK && ContentModule::content_info.is_loaded){
+            //Begins Data Load
+            for (int i = 0; i < ContentModule::content_info.num_columns && sqlite3_step(stmt) == SQLITE_ROW; i++){
+                GetTableColData(i)->is_pk = (bool)(sqlite3_column_int(stmt,5));
+            }
+        }else{
+            DataBaseManager::notif_pop_up.popup_msg = (char*) sqlite3_errmsg(db);
+        }
+
+        sqlite3_finalize(stmt);
+
+        qResult = DataBaseManager::QueryErrorManager(qResult);
+
+        free(p_query);
+
+        return qResult;
+    }
+
     //Executes the given SELECT query and returns the result of the query execution
     int ExecuteSelectQuery(char* s_query, bool is_custom_query){
         int qResult = 1;
@@ -211,6 +247,7 @@ namespace DataBaseManager{
         TList::ListNode* row_aux;
         TList::ListInfo row_info_aux;
         char msg[254];
+        char* aux_tablename = nullptr;
 
         qResult = sqlite3_prepare_v2(
             DataBaseManager::db,
@@ -239,6 +276,7 @@ namespace DataBaseManager{
                     strcpy(info_aux.coldata_info.name, sqlite3_column_name(stmt,i));
                     strcpy(info_aux.coldata_info.type, sqlite3_column_decltype(stmt,i));
                     info_aux.coldata_info.buff_size = GetBuffSizeByType(info_aux.coldata_info.type);
+                    info_aux.coldata_info.is_pk = false;
 
                     TList::InsertList(
                         &row_aux, 
@@ -262,8 +300,8 @@ namespace DataBaseManager{
                 row_aux = TList::CreateList();
 
                 for (int i = ContentModule::content_info.num_columns-1; i >= 0 ; i--){
-                    info_aux.celldata_info.db_value = (char*) malloc(GetTableColData(i).buff_size);
-                    info_aux.celldata_info.update_value = (char*) malloc(GetTableColData(i).buff_size);
+                    info_aux.celldata_info.db_value = (char*) malloc(GetTableColData(i)->buff_size);
+                    info_aux.celldata_info.update_value = (char*) malloc(GetTableColData(i)->buff_size);
 
                     //Load Row Data
                     if(sqlite3_column_text(stmt,i) == nullptr){
@@ -301,6 +339,12 @@ namespace DataBaseManager{
 
 
         sqlite3_finalize(stmt);
+
+        if(qResult == SQLITE_OK && !is_custom_query){
+            Utils::GetStringWordAtPosition(&aux_tablename,s_query,3);
+            ExecutePragmaQuery(aux_tablename);
+            free(aux_tablename);
+        }
 
         qResult = DataBaseManager::QueryErrorManager(qResult);
         // TList::PrintList(ContentModule::content_info.values);

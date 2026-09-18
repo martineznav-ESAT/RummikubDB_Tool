@@ -33,8 +33,8 @@ namespace ContentModule{
 
         for (int i = content_info.num_columns-1; i >= 0 ; i--){
             //Row Data
-            info_aux.celldata_info.db_value = (char*) malloc(DataBaseManager::GetTableColData(i).buff_size);
-            info_aux.celldata_info.update_value = (char*) malloc(DataBaseManager::GetTableColData(i).buff_size);
+            info_aux.celldata_info.db_value = (char*) malloc(DataBaseManager::GetTableColData(i)->buff_size);
+            info_aux.celldata_info.update_value = (char*) malloc(DataBaseManager::GetTableColData(i)->buff_size);
 
             //Load Row Data
             strcpy(info_aux.celldata_info.db_value , "\0");
@@ -66,22 +66,51 @@ namespace ContentModule{
 
     void OnDeleteButton(int r){
         char* d_query = nullptr;
+        char where_clause[512] = "\0";
+        char aux_str[254] = "\0";
+        TList::ListNode* header_row = TList::GetLastListNode(content_info.values)->info.list_info;
+        TList::ListNode* actual_register = TList::GetIndexListNode(content_info.values, r)->info.list_info;
+        TList::ColumnData* actual_col = nullptr;
+
+        // DEBUG
+        // printf("ROW TO DELETE %d\n",r);
+        // TList::PrintList(actual_register);
+
+        for (int c = 0; c < content_info.num_columns; c++){
+            actual_col = DataBaseManager::GetTableColData(c);
+            if(actual_col->is_pk){
+                if(strcmp(where_clause,"\0") == 0){
+                    sprintf(
+                        aux_str,
+                        "WHERE %s = %s ",
+                        actual_col->name, 
+                        TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                    );
+                    strcpy(where_clause,aux_str);
+                }else{
+                    sprintf(
+                        aux_str,
+                        "AND %s = %s ",
+                        actual_col->name, 
+                        TList::GetIndexListNode(actual_register,c)->info.celldata_info.db_value
+                    );
+                    strcat(where_clause,aux_str);
+                }
+            }
+        }
+        
 
         d_query = DataBaseManager::GetBaseQuery(
             DataBaseManager::BaseSQL_Querys::BASIC_DELETE,
             TList::GetIndexListNode(TablesModule::db_tables, TablesModule::selectedTable)->info.str_info,
-            TList::GetLastListNode(content_info.values)->info.list_info->info.coldata_info.name, 
-            TList::GetIndexListNode(
-                TList::GetIndexListNode(content_info.values, r)->info.list_info, 
-                0                                                                
-            )->info.str_info
+            where_clause
         );
 
         //DEBUG
-        printf(
-            "DELETE QUERY:\n %s\n",
-            d_query
-        );
+        // printf(
+        //     "DELETE QUERY:\n %s\n",
+        //     d_query
+        // );
         
 
         //DELETE REGISTER VALUE ASSOCIATED WITH THE BUTTON ROW AND UPDATE THE SELECTED TABLE 
@@ -114,10 +143,10 @@ namespace ContentModule{
             ){
                 if(strcmp(cols_s, "\0") == 0){
                     //Save col name
-                    strcpy(cols_s, DataBaseManager::GetTableColData(i).name);
+                    strcpy(cols_s, DataBaseManager::GetTableColData(i)->name);
 
                     //Save value based on type
-                    Utils::GetStringWordAtPosition(&aux_type, DataBaseManager::GetTableColData(i).type, 0);
+                    Utils::GetStringWordAtPosition(&aux_type, DataBaseManager::GetTableColData(i)->type, 0);
                     if(strcmp(aux_type, "VARCHAR") == 0 || strcmp(aux_type, "CHAR") == 0){
                         sprintf(aux_str, "'%s'", cell_aux->info.celldata_info.update_value);
                         strcpy(values_s, aux_str);
@@ -126,17 +155,17 @@ namespace ContentModule{
                     }
                 }else{
                     //Concat col name
-                    sprintf(aux_str, ", %s", DataBaseManager::GetTableColData(i).name);
+                    sprintf(aux_str, ", %s", DataBaseManager::GetTableColData(i)->name);
                     strcat(cols_s, aux_str);
 
                     //Concat value based on type
-                    Utils::GetStringWordAtPosition(&aux_type, DataBaseManager::GetTableColData(i).type, 0);
+                    Utils::GetStringWordAtPosition(&aux_type, DataBaseManager::GetTableColData(i)->type, 0);
                     if(strcmp(aux_type, "VARCHAR") == 0 || strcmp(aux_type, "CHAR") == 0){
                         sprintf(aux_str, ", '%s'", cell_aux->info.celldata_info.update_value);
                         strcat(values_s, aux_str);
                     }else{
                         sprintf(aux_str, ", %s", cell_aux->info.celldata_info.update_value);
-                        strcat(values_s, cell_aux->info.celldata_info.update_value);
+                        strcat(values_s, aux_str);
                     }
                 }
             }
@@ -176,23 +205,31 @@ namespace ContentModule{
                 TList::GetIndexListNode(content_info.values, row)->info.list_info, 
                 col                                                                
             );
-        TList::ColumnData col_metadata = DataBaseManager::GetTableColData(col);
+        TList::ColumnData* col_metadata = DataBaseManager::GetTableColData(col);
 
         char cell_label[100];
         sprintf(cell_label, "##cell_%d_%d", row, col);
 
         ImGui::SetNextItemWidth(-FLT_MIN);
         
+        if (col_metadata->is_pk){
+            ImGui::TableSetBgColor(
+                ImGuiTableBgTarget_CellBg,
+                IM_COL32(180, 180, 0, 255),
+                col
+            );
+        }
         ImGui::InputText(
             cell_label,
             cell->info.celldata_info.update_value,
-            col_metadata.buff_size,
-            DataBaseManager::GetInputFlagsByType(col_metadata.type)
+            col_metadata->buff_size,
+            DataBaseManager::GetInputFlagsByType(col_metadata->type)
         );
     }
 
     //Draws the table of the current query content. No matter if it is a custom query or a table selection
     void DrawContentTable(){
+        char aux_str[100] = "\0";
 
         if(content_info.is_loaded && !TList::IsEmptyList(&(content_info.values))){
             
@@ -238,6 +275,7 @@ namespace ContentModule{
                             )->info.coldata_info.name
                         );
                     }
+                    
                     ImGui::TableSetupColumn(
                         "",
                         ImGuiTableColumnFlags_WidthFixed |
@@ -258,7 +296,8 @@ namespace ContentModule{
                         ImGui::PushStyleColor(ImGuiCol_Button, IM_COL32(180, 60, 60, 255));
                         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, IM_COL32(200, 70, 70, 255));
                         ImGui::PushStyleColor(ImGuiCol_ButtonActive, IM_COL32(160, 50, 50, 255));
-                        if(ImGui::Button("X", ImVec2(-FLT_MIN,0))){
+                        sprintf(aux_str, "X##del_%d", r);
+                        if(ImGui::Button(aux_str, ImVec2(-FLT_MIN,0))){
                             OnDeleteButton(r);
                         }
                         ImGui::PopStyleColor(3);

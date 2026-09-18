@@ -70,7 +70,7 @@ namespace DataBaseManager{
     //Returns the column data of the column at the index given as parameter
     //The header row of the table with the column metadata has to be created 
     //before using this function for it to work
-    TList::ColumnData GetTableColData(int col);
+    TList::ColumnData* GetTableColData(int col);
 
     //Executes a select query given 
     int ExecuteSelectQuery(char* s_query, bool is_custom_query = false);

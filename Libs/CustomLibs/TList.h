@@ -25,6 +25,7 @@ namespace TList{
         char name[80];
         char type[50];
         int buff_size;
+        bool is_pk;
     };
 
     struct CellData{

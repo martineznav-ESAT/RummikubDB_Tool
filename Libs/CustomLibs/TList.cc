@@ -102,6 +102,7 @@ namespace TList{
                 printf("COLUMN DATA | ");
                 printf("Name - %s | ",list->info.coldata_info.name);
                 printf("Type - %s \n",list->info.coldata_info.type);
+                printf("Is PK - %s \n",list->info.coldata_info.is_pk ? "Y" : "N");
             break;
 
             case ListType::CELLDATA:
