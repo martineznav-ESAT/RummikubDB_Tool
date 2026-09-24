@@ -38,8 +38,9 @@ void Draw(){
 //Returns a boolean that determines if the conditions to close the game are succeeded
 bool CloseCondition(){
     return (
-        esat::WindowIsOpened() && 
-        !esat::IsSpecialKeyDown(esat::kSpecialKey_Escape)
+        !esat::WindowIsOpened() || 
+        esat::IsSpecialKeyDown(esat::kSpecialKey_Escape) ||
+        (DataBaseManager::notif_pop_up.popup_type == DataBaseManager::PopUpType::POP_CRASH && !DataBaseManager::notif_pop_up.is_opened)
     );
 }
 
@@ -62,9 +63,8 @@ int esat::main(int argc, char **argv) {
 	WindowSetMouseVisibility(true);
 
     Init();
-
     
-    while(CloseCondition()) {        
+    while(!CloseCondition()) {        
         Utils::last_time = esat::Time();
 
         esat::DrawBegin();

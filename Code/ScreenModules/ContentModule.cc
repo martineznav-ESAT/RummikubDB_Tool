@@ -67,7 +67,7 @@ namespace ContentModule{
     void OnDeleteButton(int r){
         char* d_query = nullptr;
         char where_clause[512] = "\0";
-        char aux_str[254] = "\0";
+        char aux_str[256] = "\0";
         char* aux_type = nullptr;
         bool is_first; //Loop Aux
         TList::ListNode* header_row = TList::GetLastListNode(content_info.values)->info.list_info;
@@ -156,7 +156,7 @@ namespace ContentModule{
         char* i_query = nullptr;
         char cols_s[512] = "\0";
         char values_s[512] = "\0";
-        char aux_str[254] = "\0";
+        char aux_str[256] = "\0";
         TList::ListNode* row_node = TList::GetIndexListNode(content_info.values, r)->info.list_info;
         TList::ListNode* cell_aux = nullptr;
         char* aux_type = nullptr;
@@ -238,7 +238,7 @@ namespace ContentModule{
     void OnUpdateButton(int r){
         char* u_query = nullptr;
         char where_clause[512] = "\0";
-        char aux_str[254] = "\0";
+        char aux_str[256] = "\0";
         char* aux_type = nullptr;
         bool is_first; //Loop aux
         TList::ListNode* header_row = TList::GetLastListNode(content_info.values)->info.list_info;

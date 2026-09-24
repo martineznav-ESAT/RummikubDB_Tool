@@ -11,7 +11,7 @@
 
 namespace DataBaseManager{
     //Constant value that represents the sqlite database file location
-    const char* kDB_location = "./Assets/DDBB/Rummikub_DB.db";
+    const char* kDB_location = "./Assets/DB.db";
 
     //Constant values of all the base/default sql querys used in the tool
     char* kBaseSQL_Querys[] = {
@@ -319,7 +319,7 @@ namespace DataBaseManager{
         TList::ListInfo info_aux;
         TList::ListNode* row_aux;
         TList::ListInfo row_info_aux;
-        char msg[254];
+        char msg[256];
         char* aux_tablename = nullptr;
 
         qResult = sqlite3_prepare_v2(
@@ -444,7 +444,7 @@ namespace DataBaseManager{
         int qResult = 1;
         TList::ListInfo aux_info;
         aux_info.str_info = nullptr;
-        char msg[254];
+        char msg[256];
         int changes;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, u_query, 1);
@@ -485,7 +485,7 @@ namespace DataBaseManager{
         int qResult = 1;
         TList::ListInfo aux_info;
         aux_info.str_info = nullptr;
-        char msg[254];
+        char msg[256];
         int changes;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, i_query, 2);
@@ -527,7 +527,7 @@ namespace DataBaseManager{
         int qResult = 1;
         TList::ListInfo aux_info;
         aux_info.str_info = nullptr;
-        char msg[254];
+        char msg[256];
         int changes;
 
         Utils::GetStringWordAtPosition(&aux_info.str_info, d_query, 2);
@@ -587,12 +587,12 @@ namespace DataBaseManager{
         //and makes sure the popup message shows without crashing
 
         if(pop_up->popup_msg == nullptr){
-            pop_up->popup_msg = (char*) malloc(sizeof(char)*254);
+            pop_up->popup_msg = (char*) malloc(sizeof(char)*256);
         }
         if(pop_up->popup_msg != msg){
             strcpy(pop_up->popup_msg, msg);
         }
-        pop_up->is_opening = open;
+        pop_up->is_opened = open;
     }
 
     //Draws the given pop_up based on its values
@@ -615,11 +615,14 @@ namespace DataBaseManager{
             case DataBaseManager::PopUpType::POP_INFO:
                 snprintf(popup_label, sizeof(popup_label), "QUERY INFO##%s",pop_up->name);
             break;
+
+            case DataBaseManager::PopUpType::POP_CRASH:
+                snprintf(popup_label, sizeof(popup_label), "CRASH REPORT##%s",pop_up->name);
+            break;
         }
 
-        if(pop_up->is_opening){
+        if(pop_up->is_opened){
             ImGui::OpenPopup(popup_label);
-            pop_up->is_opening = false;
         }
 
         ImGui::SetNextWindowSize(
@@ -634,6 +637,7 @@ namespace DataBaseManager{
 
             if (ImGui::Button("OK", ImVec2(-1, 0))){
                 ImGui::CloseCurrentPopup(); 
+                pop_up->is_opened = false;
             }
             ImGui::EndPopup();
         }
@@ -641,14 +645,27 @@ namespace DataBaseManager{
 
     //Inicialization function
     int Init(){
-        int qResult = sqlite3_open(kDB_location, &db);
-        
+        int qResult;
+        char msg[256];
+
         notif_pop_up.name = "Notification_PopUp";
-        notif_pop_up.popup_msg = (char*) malloc(sizeof(char)*254);
+        notif_pop_up.popup_msg = (char*) malloc(sizeof(char)*256);
+
+        qResult = sqlite3_open_v2(
+                        kDB_location,
+                        &db,
+                        SQLITE_OPEN_READWRITE,
+                        nullptr
+                    );
 
 
         if(qResult != SQLITE_OK){
-            fprintf(stderr, "Could not open database: %s\n",sqlite3_errmsg(db));
+            snprintf(msg, sizeof(msg), "Could not open the DataBase: %s\n",sqlite3_errmsg(db));
+            SetPopUpValues(
+                &notif_pop_up,
+                PopUpType::POP_CRASH,
+                msg
+            );
             sqlite3_close(db);
         }else{
             TablesModule::Init();

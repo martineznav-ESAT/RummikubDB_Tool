@@ -28,7 +28,7 @@ namespace CustomQueryModule{
         int q_result = 1;
 
         //Aux values for CUD queries
-        char msg[254];
+        char msg[256];
         int changes;
         switch (DataBaseManager::GetQueryType(q_input)){
             case DataBaseManager::QueryType::SELECT:

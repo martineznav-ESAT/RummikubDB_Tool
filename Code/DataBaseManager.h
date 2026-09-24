@@ -41,12 +41,13 @@ namespace DataBaseManager{
     enum PopUpType{
         POP_INFO,
         POP_ERROR,
+        POP_CRASH,
         TOTAL_POPUPTYPES
     };
 
     struct PopUpValues{
         char* name = nullptr;
-        bool is_opening = false;
+        bool is_opened = false;
         PopUpType popup_type = PopUpType::POP_INFO;
         char* popup_msg = nullptr;
     };
