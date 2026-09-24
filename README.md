@@ -51,12 +51,18 @@ Delete Button
 
 Custom Querys -> 
 
-Is a textarea destined to the user in which anything can be written, but when the execute button is used, it will only accept and process SELECT, UPDATE, INSERT and DELETE querys. If a select query is executed, the interactive CRUD buttons wont appear
+Is a text area destined to the user in which anything can be written, but when the execute button is used, it will only accept and process SELECT, UPDATE, INSERT and DELETE querys. If a select query is executed, the interactive CRUD buttons wont appear. To execute the custom querys you will need to press the Execute Query button. The Clear Query button is used to erase the text in the text area
 
 <img width="1103" height="974" alt="image" src="https://github.com/user-attachments/assets/0c6a9edb-163e-4770-b3c3-dd507abfd8eb" />
 
 
 In case of query error or not accepted query, a dialog PopUp where the error is shown will be displayed
+
+<img width="1244" height="927" alt="image" src="https://github.com/user-attachments/assets/30a02d99-6768-42da-b849-9f2fb6c66a8a" />
+<img width="1220" height="937" alt="image" src="https://github.com/user-attachments/assets/d7c33665-da63-4137-9091-3481657f8286" />
+<img width="1253" height="940" alt="image" src="https://github.com/user-attachments/assets/3449e51f-7eac-484c-815b-fbb6106b3d35" />
+
+
 
 
 
