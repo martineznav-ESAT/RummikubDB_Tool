@@ -4,15 +4,22 @@ The application itself was coded trying to have in mind any kind of SQLite datab
 That being said, the following User Manual will further explain how to download and use the tool properly
 
 
-**USER MANUAL**
+--**---USER MANUAL---**--
 
 **DOWNLOAD**
 
-To download the tool, you just need to go to the release section of this github and download the latest version, wich will always contain a compressed file. 
+To download the tool, you just need to go to the release section of this github and download the latest version, wich will always contain a compressed file with the version attached at the end of the file name. 
+
+<img width="630" height="40" alt="image" src="https://github.com/user-attachments/assets/2c9d29a9-8412-4eda-be42-79a7bb543120" />
+
 
 **INSTALLATION AND EXECUTION**
 
 The tool does not have any installation, to use it once downloaded, you will just need to uncompress it and launch the executable file found inside. 
+
+<img width="686" height="182" alt="image" src="https://github.com/user-attachments/assets/81d95b36-4cb9-41c7-a20a-b1029fbe7b67" />
+
+
 It will try to open the database inside the "Assets" directory with name "DB.db"
 If it can't find it, the tool will execute correctly, but a crash pop up will appear mentioning the file could not be opened, closing the app the moment the confirmation button is clicked.
 
