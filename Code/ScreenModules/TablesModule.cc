@@ -77,7 +77,7 @@ namespace TablesModule{
     //Draws on screen the left column that portraits the available tables of the database
     void Draw(){
         //Window Init
-        ImGui::Begin("Rummikub DB", 0, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse);
+        ImGui::Begin("DB Tables", 0, ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoCollapse);
         ImGui::SetWindowSize({Utils::kWindowWidth*0.20f, Utils::kWindowHeight*1.0f});
         ImGui::SetWindowPos({0.0f, 0.0f});
 
