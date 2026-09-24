@@ -16,13 +16,16 @@ The tool does not have any installation, to use it once downloaded, you will jus
 It will try to open the database inside the "Assets" directory with name "DB.db"
 If it can't find it, the tool will execute correctly, but a crash pop up will appear mentioning the file could not be opened.
 
-If the database is found, it will be automatically loaded and ready to interact with.
+<img width="1274" height="970" alt="image" src="https://github.com/user-attachments/assets/fe939d29-621f-4e0f-9a10-bb950b9750c4" />
+
+If the database is found, it will be automatically loaded and set the tool ready to interact with.
+
+<img width="1282" height="992" alt="image" src="https://github.com/user-attachments/assets/11a7db83-ad99-4b34-9919-aca8d6d89550" />
+
 
 **USAGE**
 
 The tool is divided in three main windows
-
-<img width="1282" height="992" alt="image" src="https://github.com/user-attachments/assets/11a7db83-ad99-4b34-9919-aca8d6d89550" />
 
 
 DB Tables -> 
