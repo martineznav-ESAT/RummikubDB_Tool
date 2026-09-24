@@ -11,6 +11,7 @@ That being said, the following User Manual will further explain how to download 
 To download the tool, you just need to go to the release section of this github and download the latest version, wich will always contain a compressed file. 
 
 **INSTALLATION AND EXECUTION**
+
 The tool does not have any installation, to use it once downloaded, you will just need to uncompress it and launch the executable file found inside. 
 It will try to open the database inside the "Assets" directory with name "DB.db"
 If it can't find it, the tool will execute correctly, but a crash pop up will appear mentioning the file could not be opened.
@@ -18,23 +19,42 @@ If it can't find it, the tool will execute correctly, but a crash pop up will ap
 If the database is found, it will be automatically loaded and ready to interact with.
 
 **USAGE**
+
 The tool is divided in three main windows
 
+<img width="1282" height="992" alt="image" src="https://github.com/user-attachments/assets/11a7db83-ad99-4b34-9919-aca8d6d89550" />
+
+
 DB Tables -> 
+
 Contains a vertical list of the available tables in the loaded database. Clicking one of the table names will automatically load its content and show it in the Query Content window
 
+<img width="351" height="512" alt="image" src="https://github.com/user-attachments/assets/845a6aff-dca4-4ccd-bcc7-45ceedac016e" />
+
+
 Query Content -> 
+
 Contains the result of a select query executed either by selecting a table in the DB Tables window or a custom select executed in the Custom Querys window. 
 If the shown content is from a base table, it will grant access to interactive buttons which grant the posibility of adding, updating or deleting values from the current selected table
 
+<img width="1089" height="653" alt="image" src="https://github.com/user-attachments/assets/1e9f9300-9ecb-4282-8da8-0377e3cfdb13" />
+
+
 Add Button
+
 
 Update/Edit Button
 
+
 Delete Button
 
+
 Custom Querys -> 
-Is a textarea destined to the user in which anything can be written, but when the execute button is used, it will only accept and process SELECT, UPDATE, INSERT and DELETE querys.
+
+Is a textarea destined to the user in which anything can be written, but when the execute button is used, it will only accept and process SELECT, UPDATE, INSERT and DELETE querys. If a select query is executed, the interactive CRUD buttons wont appear
+
+<img width="1103" height="974" alt="image" src="https://github.com/user-attachments/assets/0c6a9edb-163e-4770-b3c3-dd507abfd8eb" />
+
 
 In case of query error or not accepted query, a dialog PopUp where the error is shown will be displayed
 
