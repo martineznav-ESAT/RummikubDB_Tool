@@ -15,18 +15,15 @@ To download the tool, you just need to go to the release section of this github 
 The tool does not have any installation, to use it once downloaded, you will just need to uncompress it and launch the executable file found inside. 
 It will try to open the database inside the "Assets" directory with name "DB.db"
 If it can't find it, the tool will execute correctly, but a crash pop up will appear mentioning the file could not be opened.
-
 <img width="1274" height="970" alt="image" src="https://github.com/user-attachments/assets/fe939d29-621f-4e0f-9a10-bb950b9750c4" />
 
 If the database is found, it will be automatically loaded and set the tool ready to interact with.
-
 <img width="1282" height="992" alt="image" src="https://github.com/user-attachments/assets/11a7db83-ad99-4b34-9919-aca8d6d89550" />
 
 
 **USAGE**
 
-The tool is divided in three main windows
-
+The tool is divided in three main windows:
 
 DB Tables -> 
 
@@ -38,18 +35,35 @@ Contains a vertical list of the available tables in the loaded database. Clickin
 Query Content -> 
 
 Contains the result of a select query executed either by selecting a table in the DB Tables window or a custom select executed in the Custom Querys window. 
-If the shown content is from a base table, it will grant access to interactive buttons which grant the posibility of adding, updating or deleting values from the current selected table
+If the shown content is from a base table, it will grant access to interactive buttons which grant the posibility of adding, updating or deleting values from the current selected table. In this situation, it will also taint in yellow the columns that represent the primary key/s of the table
 
 <img width="1089" height="653" alt="image" src="https://github.com/user-attachments/assets/1e9f9300-9ecb-4282-8da8-0377e3cfdb13" />
 
 
 Add Button
 
+When the Add Button is clicked, creates a new row with empty values and with a new '+' button at the end that will save the new register if properly filled.
+
+<img width="1074" height="304" alt="image" src="https://github.com/user-attachments/assets/fdeb155e-e7c5-4f71-9bb1-a777b2886a62" />
+
+
+The input type of the data will limit in a basic way the possible written info based on the column value type
+
+<img width="1137" height="623" alt="image" src="https://github.com/user-attachments/assets/10cddccc-084b-4dbd-8d12-960e97d9dacc" />
+
+Its mainly limited to only integers, varchars (alphanumeric values) and booleans transformed as checkboxes
+
 
 Update/Edit Button
 
+Appears as an 'E' at the end of every saved register. When clicked, enables edit mode to the corresponding row, transforming the cells into inputs just as well as the Add Button does. The changes will only applie when the 'U' button is pressed
 
-Delete Button
+<img width="895" height="235" alt="image" src="https://github.com/user-attachments/assets/2e4e2431-14dd-483a-ab27-30e53b6d8ecc" />
+
+
+Delete/X Button
+
+Appears at the end of every register as a red button. When clicked, deletes the row value from the database instantly, no questions asked.
 
 
 Custom Querys -> 
