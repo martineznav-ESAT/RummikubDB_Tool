@@ -65,7 +65,7 @@ Its mainly limited to only integers, varchars (alphanumeric values) and booleans
 
 Update/Edit Button
 
-Appears as an 'E' at the end of every saved register. When clicked, enables edit mode to the corresponding row, transforming the cells into inputs just as well as the Add Button does. The changes will only applie when the 'U' button is pressed
+Appears as an 'E' at the end of every saved register. When clicked, enables edit mode to the corresponding row, transforming the cells into inputs just as well as the Add Button does. The changes will only apply when the 'U' button is pressed
 
 <img width="895" height="235" alt="image" src="https://github.com/user-attachments/assets/2e4e2431-14dd-483a-ab27-30e53b6d8ecc" />
 
